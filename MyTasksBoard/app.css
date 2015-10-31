@@ -1,0 +1,79 @@
+﻿html, body {
+    height: 100%;
+}
+
+#app {
+    height: 100%;
+    width: 100%;
+}
+
+#authorize {
+    display: none;
+}
+
+.board {
+    min-height: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.column {
+    margin: 5px;
+    flex: 1;
+    min-width: 220px;
+    max-width: 400px;
+    background-color: #eee;
+}
+
+    .column > .name {
+        border-bottom: 2px solid #999;
+        padding-bottom: 2px;
+        background: white;
+        text-align: center;
+        font-size: 20px;
+    }
+
+    .column.completed {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+.card {
+    box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.5);
+    margin: 10px;
+    min-height: 100px;
+    background-color: white;
+    padding: 8px;
+    cursor: n-resize;
+}
+
+    .card > .title {
+        font-size: 13px;
+    }
+
+    .card > .description {
+        padding-top: 5px;
+        color: #999;
+        font-size: 12px;
+        white-space: pre-wrap;
+    }
+
+    .card > .due {
+        float: right;
+        color: #ccc;
+        font-size: 12px;
+        padding-left: 2px;
+    }
+
+    .card > .tasks > .task > input[type=checkbox] {
+        vertical-align: middle;
+    }
+
+    .card > .tasks > .task > .title {
+        font-size: 12px;
+        margin-left: 5px;
+    }
+
+    .card > .tasks > .task.completed {
+        text-decoration: line-through;
+    }

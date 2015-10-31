@@ -9,18 +9,30 @@
             public parentElement?: HTMLElement
         ) { }
 
-        public render(parentElement?: HTMLElement) {
-            this.parentElement = this.parentElement || parentElement;
+        public render(parentElement = this.parentElement) {
+            this.parentElement = parentElement;
 
+            this.renderColumn();
+
+            this.renderName();
+
+            this.renderCards();
+        }
+
+        private renderColumn() {
             this.columnElement = document.createElement("div");
             this.columnElement.className = "column";
             this.parentElement.appendChild(this.columnElement);
+        }
 
+        private renderName() {
             this.nameElement = document.createElement("div");
             this.nameElement.className = "name";
             this.nameElement.innerText = this.name;
             this.columnElement.appendChild(this.nameElement);
+        }
 
+        private renderCards() {
             for (let c of this.cards) {
                 c.render(this.columnElement);
             }

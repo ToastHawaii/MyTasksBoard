@@ -10,13 +10,21 @@
             public parentElement?: HTMLElement
         ) { }
 
-        public render(parentElement?: HTMLElement) {
-            this.parentElement = this.parentElement || parentElement;
+        public render(parentElement = this.parentElement) {
+            this.parentElement = parentElement;
 
+            this.renderTask();
+
+            this.renderTitle();
+        }
+
+        private renderTask() {
             this.taskElement = document.createElement("div");
             this.taskElement.className = "task" + (this.completed ? " completed" : "");
             this.parentElement.appendChild(this.taskElement);
+        }
 
+        private renderTitle() {
             this.checkboxElement = document.createElement("input");
             this.checkboxElement.type = "checkbox";
             this.checkboxElement.disabled = true;

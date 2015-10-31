@@ -45,18 +45,37 @@
     background-color: white;
     padding: 8px;
     cursor: n-resize;
+    border-left: 5px solid #2890ff;
 }
 
     .card > .title {
+        padding: 2px;
         font-size: 13px;
+        cursor: text;
     }
 
+        .card > .title:hover,
+        .card > .title:active,
+        .card > .title:focus {
+            outline: 1px solid #999;
+            background-color: #eee;
+        }
+
     .card > .description {
-        padding-top: 5px;
+        margin-top: 5px;
+        padding: 2px;
         color: #999;
         font-size: 12px;
         white-space: pre-wrap;
+        cursor: text;
     }
+
+        .card > .description:hover,
+        .card > .description:active,
+        .card > .description:focus {
+            outline: 1px solid #999;
+            background-color: #eee;
+        }
 
     .card > .due {
         float: right;
@@ -65,15 +84,15 @@
         padding-left: 2px;
     }
 
-    .card > .tasks > .task > input[type=checkbox] {
-        vertical-align: middle;
-    }
+.task > input[type=checkbox] {
+    vertical-align: middle;
+}
 
-    .card > .tasks > .task > .title {
-        font-size: 12px;
-        margin-left: 5px;
-    }
+.task > .title {
+    font-size: 12px;
+    margin-left: 5px;
+}
 
-    .card > .tasks > .task.completed {
-        text-decoration: line-through;
-    }
+.task.completed {
+    text-decoration: line-through;
+}

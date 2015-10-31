@@ -13,8 +13,14 @@ var ViewModels;
             this.parentElement = parentElement;
         }
         Card.prototype.render = function (parentElement) {
-            var _this = this;
-            this.parentElement = this.parentElement || parentElement;
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderCard();
+            this.renderDue();
+            this.renderTitle();
+            this.renderDescription();
+        };
+        Card.prototype.renderCard = function () {
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.taskId;
             this.cardElement.className = "card";
@@ -28,9 +34,7 @@ var ViewModels;
             this.cardElement.addEventListener("dragend", function (ev) {
                 ev.target.style.opacity = "";
             }, false);
-            this.cardElement.addEventListener("dragover", function (ev) {
-                ev.preventDefault();
-            }, false);
+            this.cardElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
             this.cardElement.addEventListener("drop", function (ev) {
                 ev.preventDefault();
                 var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
@@ -48,6 +52,8 @@ var ViewModels;
                 }
             }, false);
             this.parentElement.appendChild(this.cardElement);
+        };
+        Card.prototype.renderDue = function () {
             this.dueElement = document.createElement("div");
             this.dueElement.className = "due";
             if (this.due) {
@@ -55,6 +61,9 @@ var ViewModels;
                 this.dueElement.innerText = dueDate.getDate() + "." + (dueDate.getMonth() + 1) + "." + dueDate.getFullYear();
             }
             this.cardElement.appendChild(this.dueElement);
+        };
+        Card.prototype.renderTitle = function () {
+            var _this = this;
             this.titleElement = document.createElement("div");
             this.titleElement.className = "title";
             this.titleElement.innerText = this.title;
@@ -68,6 +77,9 @@ var ViewModels;
                 }
             }, false);
             this.cardElement.appendChild(this.titleElement);
+        };
+        Card.prototype.renderDescription = function () {
+            var _this = this;
             this.descriptionElement = document.createElement("div");
             this.descriptionElement.className = "description";
             if (this.description) {
@@ -83,6 +95,8 @@ var ViewModels;
                 }
             }, false);
             this.cardElement.appendChild(this.descriptionElement);
+        };
+        Card.prototype.renderTasks = function () {
             this.tasksElement = document.createElement("div");
             this.tasksElement.className = "tasks";
             this.cardElement.appendChild(this.tasksElement);

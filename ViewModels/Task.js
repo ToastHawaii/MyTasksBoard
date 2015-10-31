@@ -7,10 +7,17 @@ var ViewModels;
             this.parentElement = parentElement;
         }
         Task.prototype.render = function (parentElement) {
-            this.parentElement = this.parentElement || parentElement;
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderTask();
+            this.renderTitle();
+        };
+        Task.prototype.renderTask = function () {
             this.taskElement = document.createElement("div");
             this.taskElement.className = "task" + (this.completed ? " completed" : "");
             this.parentElement.appendChild(this.taskElement);
+        };
+        Task.prototype.renderTitle = function () {
             this.checkboxElement = document.createElement("input");
             this.checkboxElement.type = "checkbox";
             this.checkboxElement.disabled = true;

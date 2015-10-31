@@ -7,10 +7,17 @@ var ViewModels;
             this.parentElement = parentElement;
         }
         Board.prototype.render = function (parentElement) {
-            this.parentElement = this.parentElement || parentElement;
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderBoard();
+            this.renderColumns();
+        };
+        Board.prototype.renderBoard = function () {
             this.boardElement = document.createElement("div");
             this.boardElement.className = "board";
             this.parentElement.appendChild(this.boardElement);
+        };
+        Board.prototype.renderColumns = function () {
             for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
                 var c = _a[_i];
                 c.render(this.boardElement);

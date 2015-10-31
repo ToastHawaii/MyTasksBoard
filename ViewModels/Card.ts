@@ -20,9 +20,21 @@
             public parentElement?: HTMLElement
         ) { }
 
-        public render(parentElement: HTMLElement) {
-            this.parentElement = this.parentElement || parentElement;
+        public render(parentElement = this.parentElement) {
+            this.parentElement = parentElement;
 
+            this.renderCard();
+
+            this.renderDue();
+
+            this.renderTitle();
+
+            this.renderDescription();
+
+            this.renderTasks();
+        }
+
+        private renderCard() {
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.taskId;
             this.cardElement.className = "card";
@@ -37,9 +49,7 @@
             this.cardElement.addEventListener("dragend", ev => {
                 (<HTMLDivElement>ev.target).style.opacity = "";
             }, false);
-            this.cardElement.addEventListener("dragover", ev => {
-                ev.preventDefault();
-            }, false);
+            this.cardElement.addEventListener("dragover", ev => { ev.preventDefault(); }, false);
             this.cardElement.addEventListener("drop", ev => {
                 ev.preventDefault();
                 let cardElement = document.getElementById(ev.dataTransfer.getData("text"));
@@ -57,7 +67,9 @@
                 }
             }, false);
             this.parentElement.appendChild(this.cardElement);
+        }
 
+        private renderDue() {
             this.dueElement = document.createElement("div");
             this.dueElement.className = "due";
             if (this.due) {
@@ -65,7 +77,9 @@
                 this.dueElement.innerText = dueDate.getDate() + "." + (dueDate.getMonth() + 1) + "." + dueDate.getFullYear();
             }
             this.cardElement.appendChild(this.dueElement);
+        }
 
+        private renderTitle() {
             this.titleElement = document.createElement("div");
             this.titleElement.className = "title";
             this.titleElement.innerText = this.title;
@@ -80,7 +94,9 @@
                 }
             }, false);
             this.cardElement.appendChild(this.titleElement);
+        }
 
+        private renderDescription() {
             this.descriptionElement = document.createElement("div");
             this.descriptionElement.className = "description";
             if (this.description) {
@@ -97,7 +113,9 @@
                 }
             }, false);
             this.cardElement.appendChild(this.descriptionElement);
+        }
 
+        private renderTasks() {
             this.tasksElement = document.createElement("div");
             this.tasksElement.className = "tasks";
             this.cardElement.appendChild(this.tasksElement);

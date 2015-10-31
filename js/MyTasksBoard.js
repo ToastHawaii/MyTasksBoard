@@ -75,8 +75,7 @@ var App = (function () {
     return App;
 })();
 window.onload = function () {
-    var app = new App();
-    app.start();
+    new App().start();
 };
 var Services;
 (function (Services) {
@@ -171,57 +170,32 @@ var Services;
 })(Services || (Services = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Task = (function () {
-        function Task(completed, title, parentElement) {
-            this.completed = completed;
-            this.title = title;
+    var Board = (function () {
+        function Board(columns, parentElement) {
+            if (columns === void 0) { columns = []; }
+            this.columns = columns;
             this.parentElement = parentElement;
         }
-        Task.prototype.render = function (parentElement) {
-            this.parentElement = this.parentElement || parentElement;
-            this.taskElement = document.createElement("div");
-            this.taskElement.className = "task" + (this.completed ? " completed" : "");
-            this.parentElement.appendChild(this.taskElement);
-            this.checkboxElement = document.createElement("input");
-            this.checkboxElement.type = "checkbox";
-            this.checkboxElement.disabled = true;
-            this.checkboxElement.checked = this.completed;
-            this.taskElement.appendChild(this.checkboxElement);
-            this.titleElement = document.createElement("span");
-            this.titleElement.className = "title";
-            this.titleElement.innerText = this.title;
-            this.taskElement.appendChild(this.titleElement);
+        Board.prototype.render = function (parentElement) {
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderBoard();
+            this.renderColumns();
         };
-        return Task;
-    })();
-    ViewModels.Task = Task;
-})(ViewModels || (ViewModels = {}));
-var ViewModels;
-(function (ViewModels) {
-    var Column = (function () {
-        function Column(name, cards, parentElement) {
-            if (cards === void 0) { cards = []; }
-            this.name = name;
-            this.cards = cards;
-            this.parentElement = parentElement;
-        }
-        Column.prototype.render = function (parentElement) {
-            this.parentElement = this.parentElement || parentElement;
-            this.columnElement = document.createElement("div");
-            this.columnElement.className = "column";
-            this.parentElement.appendChild(this.columnElement);
-            this.nameElement = document.createElement("div");
-            this.nameElement.className = "name";
-            this.nameElement.innerText = this.name;
-            this.columnElement.appendChild(this.nameElement);
-            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
+        Board.prototype.renderBoard = function () {
+            this.boardElement = document.createElement("div");
+            this.boardElement.className = "board";
+            this.parentElement.appendChild(this.boardElement);
+        };
+        Board.prototype.renderColumns = function () {
+            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
                 var c = _a[_i];
-                c.render(this.columnElement);
+                c.render(this.boardElement);
             }
         };
-        return Column;
+        return Board;
     })();
-    ViewModels.Column = Column;
+    ViewModels.Board = Board;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
@@ -238,8 +212,15 @@ var ViewModels;
             this.parentElement = parentElement;
         }
         Card.prototype.render = function (parentElement) {
-            var _this = this;
-            this.parentElement = this.parentElement || parentElement;
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderCard();
+            this.renderDue();
+            this.renderTitle();
+            this.renderDescription();
+            this.renderTasks();
+        };
+        Card.prototype.renderCard = function () {
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.taskId;
             this.cardElement.className = "card";
@@ -253,9 +234,7 @@ var ViewModels;
             this.cardElement.addEventListener("dragend", function (ev) {
                 ev.target.style.opacity = "";
             }, false);
-            this.cardElement.addEventListener("dragover", function (ev) {
-                ev.preventDefault();
-            }, false);
+            this.cardElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
             this.cardElement.addEventListener("drop", function (ev) {
                 ev.preventDefault();
                 var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
@@ -273,6 +252,8 @@ var ViewModels;
                 }
             }, false);
             this.parentElement.appendChild(this.cardElement);
+        };
+        Card.prototype.renderDue = function () {
             this.dueElement = document.createElement("div");
             this.dueElement.className = "due";
             if (this.due) {
@@ -280,6 +261,9 @@ var ViewModels;
                 this.dueElement.innerText = dueDate.getDate() + "." + (dueDate.getMonth() + 1) + "." + dueDate.getFullYear();
             }
             this.cardElement.appendChild(this.dueElement);
+        };
+        Card.prototype.renderTitle = function () {
+            var _this = this;
             this.titleElement = document.createElement("div");
             this.titleElement.className = "title";
             this.titleElement.innerText = this.title;
@@ -294,6 +278,9 @@ var ViewModels;
                 }
             }, false);
             this.cardElement.appendChild(this.titleElement);
+        };
+        Card.prototype.renderDescription = function () {
+            var _this = this;
             this.descriptionElement = document.createElement("div");
             this.descriptionElement.className = "description";
             if (this.description) {
@@ -310,6 +297,8 @@ var ViewModels;
                 }
             }, false);
             this.cardElement.appendChild(this.descriptionElement);
+        };
+        Card.prototype.renderTasks = function () {
             this.tasksElement = document.createElement("div");
             this.tasksElement.className = "tasks";
             this.cardElement.appendChild(this.tasksElement);
@@ -324,24 +313,73 @@ var ViewModels;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Board = (function () {
-        function Board(columns, parentElement) {
-            if (columns === void 0) { columns = []; }
-            this.columns = columns;
+    var Column = (function () {
+        function Column(name, cards, parentElement) {
+            if (cards === void 0) { cards = []; }
+            this.name = name;
+            this.cards = cards;
             this.parentElement = parentElement;
         }
-        Board.prototype.render = function (parentElement) {
-            this.parentElement = this.parentElement || parentElement;
-            this.boardElement = document.createElement("div");
-            this.boardElement.className = "board";
-            this.parentElement.appendChild(this.boardElement);
-            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
+        Column.prototype.render = function (parentElement) {
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderColumn();
+            this.renderName();
+            this.renderCards();
+        };
+        Column.prototype.renderColumn = function () {
+            this.columnElement = document.createElement("div");
+            this.columnElement.className = "column";
+            this.parentElement.appendChild(this.columnElement);
+        };
+        Column.prototype.renderName = function () {
+            this.nameElement = document.createElement("div");
+            this.nameElement.className = "name";
+            this.nameElement.innerText = this.name;
+            this.columnElement.appendChild(this.nameElement);
+        };
+        Column.prototype.renderCards = function () {
+            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
                 var c = _a[_i];
-                c.render(this.boardElement);
+                c.render(this.columnElement);
             }
         };
-        return Board;
+        return Column;
     })();
-    ViewModels.Board = Board;
+    ViewModels.Column = Column;
+})(ViewModels || (ViewModels = {}));
+var ViewModels;
+(function (ViewModels) {
+    var Task = (function () {
+        function Task(completed, title, parentElement) {
+            this.completed = completed;
+            this.title = title;
+            this.parentElement = parentElement;
+        }
+        Task.prototype.render = function (parentElement) {
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderTask();
+            this.renderTitle();
+        };
+        Task.prototype.renderTask = function () {
+            this.taskElement = document.createElement("div");
+            this.taskElement.className = "task" + (this.completed ? " completed" : "");
+            this.parentElement.appendChild(this.taskElement);
+        };
+        Task.prototype.renderTitle = function () {
+            this.checkboxElement = document.createElement("input");
+            this.checkboxElement.type = "checkbox";
+            this.checkboxElement.disabled = true;
+            this.checkboxElement.checked = this.completed;
+            this.taskElement.appendChild(this.checkboxElement);
+            this.titleElement = document.createElement("span");
+            this.titleElement.className = "title";
+            this.titleElement.innerText = this.title;
+            this.taskElement.appendChild(this.titleElement);
+        };
+        return Task;
+    })();
+    ViewModels.Task = Task;
 })(ViewModels || (ViewModels = {}));
 //# sourceMappingURL=MyTasksBoard.js.map

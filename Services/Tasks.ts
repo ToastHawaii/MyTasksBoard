@@ -57,5 +57,15 @@
                 });
             });
         }
+
+        public new(taskListId: string, parentTaskId?: string, callback?: (task: gapi.client.Task) => void) {
+            this.prepareApi(() => {
+                let request = gapi.client.tasks.tasks.insert({ tasklist: taskListId, parent: parentTaskId });
+
+                request.execute(resp => {
+                    if (callback) callback(resp);
+                });
+            });
+        }
     }
 }

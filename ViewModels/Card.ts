@@ -5,17 +5,12 @@
         public descriptionElement: HTMLDivElement;
         public dueElement: HTMLDivElement;
         public tasksElement: HTMLDivElement;
-
-        public onTitleChange: (newValue: string) => void;
-        public onDescriptionChange: (newValue: string) => void;
+        public newTaskElement: HTMLButtonElement;
 
         public constructor(
-            public taskService: Services.Tasks,
-            public taskListId: string,
-            public taskId: string,
-            public title: string,
-            public description: string,
-            public due: string,
+            public tasksService: Services.Tasks,
+            public taskList: gapi.client.TaskList,
+            public task: gapi.client.Task,
             public tasks: Task[] = [],
             public parentElement?: HTMLElement
         ) { }
@@ -36,11 +31,11 @@
 
         private renderCard() {
             this.cardElement = document.createElement("div");
-            this.cardElement.id = "card-" + this.taskId;
+            this.cardElement.id = "card-" + this.task.id;
             this.cardElement.className = "card";
             this.cardElement.draggable = true;
-            this.cardElement.setAttribute("tasklistid", this.taskListId);
-            this.cardElement.setAttribute("taskid", this.taskId);
+            this.cardElement.setAttribute("tasklistid", this.taskList.id);
+            this.cardElement.setAttribute("taskid", this.task.id);
 
             this.cardElement.addEventListener("dragstart", ev => {
                 (<HTMLDivElement>ev.target).style.opacity = "0.4";
@@ -72,8 +67,8 @@
         private renderDue() {
             this.dueElement = document.createElement("div");
             this.dueElement.className = "due";
-            if (this.due) {
-                var dueDate = new Date(this.due);
+            if (this.task.due) {
+                var dueDate = new Date(this.task.due);
                 this.dueElement.innerText = dueDate.getDate() + "." + (dueDate.getMonth() + 1) + "." + dueDate.getFullYear();
             }
             this.cardElement.appendChild(this.dueElement);
@@ -82,16 +77,17 @@
         private renderTitle() {
             this.titleElement = document.createElement("div");
             this.titleElement.className = "title";
-            this.titleElement.innerText = this.title;
+            this.titleElement.innerText = this.task.title;
             this.titleElement.contentEditable = "true";
             this.titleElement.addEventListener("input", () => {
                 // remove html tags
                 this.titleElement.innerText = this.titleElement.textContent;
             });
             this.titleElement.addEventListener("blur", () => {
-                if (this.onTitleChange) {
-                    this.onTitleChange(this.titleElement.innerText);
-                }
+
+                this.task.title = this.titleElement.innerText;
+                this.tasksService.update(this.task, this.taskList.id, this.task.id);
+
             }, false);
             this.cardElement.appendChild(this.titleElement);
         }
@@ -99,18 +95,18 @@
         private renderDescription() {
             this.descriptionElement = document.createElement("div");
             this.descriptionElement.className = "description";
-            if (this.description) {
-                this.descriptionElement.innerText = this.description;
+            if (this.task.notes) {
+                this.descriptionElement.innerText = this.task.notes;
             }
             this.descriptionElement.contentEditable = "true";
             this.descriptionElement.addEventListener("input", () => {
                 // remove html tags
+                this.descriptionElement.innerHTML = this.descriptionElement.innerHTML.replace(/<br\s*\/?>/mg, "\n");
                 this.descriptionElement.innerText = this.descriptionElement.textContent;
             });
             this.descriptionElement.addEventListener("blur", () => {
-                if (this.onDescriptionChange) {
-                    this.onDescriptionChange(this.descriptionElement.innerText);
-                }
+                this.task.notes = this.descriptionElement.innerText;
+                this.tasksService.update(this.task, this.taskList.id, this.task.id);
             }, false);
             this.cardElement.appendChild(this.descriptionElement);
         }
@@ -120,9 +116,23 @@
             this.tasksElement.className = "tasks";
             this.cardElement.appendChild(this.tasksElement);
 
+            this.newTaskElement = document.createElement("button");
+            this.newTaskElement.className = "new";
+            this.newTaskElement.innerText = "+";
+            this.newTaskElement.addEventListener("click", () => {
+                new Services.Tasks().new(this.taskList.id, this.task.id, task => {
+                    let taskViewModel = new Task(this.tasksService, this.taskList, task, this.tasksElement);
+                    this.tasks.push(taskViewModel);
+                    taskViewModel.render();
+                    this.tasksElement.insertBefore(this.tasksElement.lastChild, this.tasksElement.children[1]);
+                });
+            });
+            this.tasksElement.appendChild(this.newTaskElement);
+
             for (let t of this.tasks) {
                 t.render(this.tasksElement);
             }
+
         }
     }
 }  

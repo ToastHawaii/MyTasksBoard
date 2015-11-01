@@ -17,34 +17,28 @@
         let tasksService = new Services.Tasks();
 
         tasksService.loadTaskLists(taskLists => {
-            var board = new ViewModels.Board([], document.getElementById("app"));
+            let board = new ViewModels.Board([], document.getElementById("app"));
 
-            var columnCompleted = new ViewModels.Column("Abgeschlossen");
+            let columnCompleted = new ViewModels.Column(tasksService, { title: "Abgeschlossen", etag: "", id: "", kind: "", selfLink: "", updated: "" });
 
             // get in create order
             taskLists.reverse();
             taskLists.unshift(taskLists.pop());
 
+            let first = true;
             taskLists.forEach(taskList => {
-                let column = new ViewModels.Column(taskList.title);
+                let column = new ViewModels.Column(tasksService, taskList, first);
+                first = false;
                 board.columns.push(column);
 
                 tasksService.loadTasks(taskList.id, tasks => {
                     tasks.forEach(task => {
-                        let card = new ViewModels.Card(tasksService, taskList.id, task.id, task.title, task.notes, task.due);
-
-                        card.onTitleChange = newValue => {
-                            task.title = newValue;
-                            tasksService.update(task, taskList.id, task.id);
-                        }
-                        card.onDescriptionChange = newValue => {
-                            task.notes = newValue;
-                            tasksService.update(task, taskList.id, task.id);
-                        }
+                        let card = new ViewModels.Card(tasksService, taskList, task);
 
                         tasks.forEach(childTask => {
                             if (task.id === childTask.parent) {
-                                card.tasks.push(new ViewModels.Task(typeof childTask.completed != "undefined", childTask.title));
+                                let taskViewModel = new ViewModels.Task(tasksService, taskList, childTask);
+                                card.tasks.push(taskViewModel);
                             }
                         });
 

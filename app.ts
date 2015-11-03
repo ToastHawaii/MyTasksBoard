@@ -46,11 +46,11 @@
                             if (!task.completed) {
                                 if (!task.hidden) {
                                     column.cards.push(card);
-                                    card.render(column.columnElement);
+                                    card.render(column);
                                 }
                             } else {
                                 columnCompleted.cards.push(card);
-                                card.render(columnCompleted.columnElement);
+                                card.render(columnCompleted);
                             }
                         }
                     });

@@ -41,12 +41,12 @@ var App = (function () {
                             if (!task.completed) {
                                 if (!task.hidden) {
                                     column.cards.push(card);
-                                    card.render(column.columnElement);
+                                    card.render(column);
                                 }
                             }
                             else {
                                 columnCompleted.cards.push(card);
-                                card.render(columnCompleted.columnElement);
+                                card.render(columnCompleted);
                             }
                         }
                     });
@@ -150,13 +150,73 @@ var Services;
                 });
             });
         };
-        Tasks.prototype.move = function (taskListId, taskId, previousTaskId, callback) {
+        Tasks.prototype.moveBefore = function (fromTaskListId, toTaskListId, taskId, followTaskId, callback) {
+            var _this = this;
+            this.moveAfter(fromTaskListId, toTaskListId, taskId, followTaskId, function (task) {
+                _this.moveAfter(toTaskListId, toTaskListId, followTaskId, task.id, callback);
+            });
+        };
+        Tasks.prototype.moveAfter = function (fromTaskListId, toTaskListId, taskId, previousTaskId, callback) {
             this.prepareApi(function () {
-                var request = gapi.client.tasks.tasks.move({ tasklist: taskListId, task: taskId, previous: previousTaskId });
-                request.execute(function (resp) {
-                    if (callback)
-                        callback();
-                });
+                if (fromTaskListId === toTaskListId) {
+                    // same list
+                    var request = gapi.client.tasks.tasks.move({ tasklist: fromTaskListId, task: taskId, previous: previousTaskId });
+                    request.execute(function (resp) {
+                        if (callback)
+                            callback();
+                    });
+                }
+                else {
+                    // move to other list
+                    // load task
+                    var request = gapi.client.tasks.tasks.list({ tasklist: fromTaskListId });
+                    request.execute(function (tasks) {
+                        tasks.items.forEach(function (currentTask) {
+                            if (currentTask.id === taskId) {
+                                // create new task in the other list
+                                delete currentTask.id;
+                                delete currentTask.selfLink;
+                                delete currentTask.parent;
+                                delete currentTask.position;
+                                delete currentTask.hidden;
+                                delete currentTask.links;
+                                var request_1 = gapi.client.tasks.tasks.insert({ tasklist: toTaskListId, previous: previousTaskId }, currentTask);
+                                request_1.execute(function (newTask) {
+                                    var newChildTasks = [];
+                                    var oldChildTasks = tasks.items.filter(function (t) { return t.parent === taskId; });
+                                    var index = 0;
+                                    var moveChild = function () {
+                                        var childTask = oldChildTasks[index];
+                                        // create new task in the other list
+                                        delete childTask.id;
+                                        delete childTask.selfLink;
+                                        delete childTask.parent;
+                                        delete childTask.position;
+                                        delete childTask.hidden;
+                                        delete childTask.links;
+                                        var request = gapi.client.tasks.tasks.insert({ tasklist: toTaskListId, parent: newTask.id }, childTask);
+                                        request.execute(function (childTask) {
+                                            newChildTasks.unshift(childTask);
+                                            if (index + 1 === oldChildTasks.length) {
+                                                // delete old task
+                                                var request_2 = gapi.client.tasks.tasks.delete({ tasklist: fromTaskListId, task: taskId });
+                                                request_2.execute(function (empty) {
+                                                    if (callback)
+                                                        callback(newTask, newChildTasks);
+                                                });
+                                            }
+                                            else {
+                                                moveChild();
+                                            }
+                                            index++;
+                                        });
+                                    };
+                                    moveChild();
+                                });
+                            }
+                        });
+                    });
+                }
             });
         };
         Tasks.prototype.new = function (taskListId, parentTaskId, callback) {
@@ -174,47 +234,130 @@ var Services;
 })(Services || (Services = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Board = (function () {
-        function Board(columns, parentElement) {
-            if (columns === void 0) { columns = []; }
-            this.columns = columns;
-            this.parentElement = parentElement;
+    var Task = (function () {
+        function Task(tasksService, taskList, task, card) {
+            this.tasksService = tasksService;
+            this.taskList = taskList;
+            this.task = task;
+            this.card = card;
         }
-        Board.prototype.render = function (parentElement) {
-            if (parentElement === void 0) { parentElement = this.parentElement; }
-            this.parentElement = parentElement;
-            this.renderBoard();
-            this.renderColumns();
+        Task.prototype.render = function (card) {
+            if (card === void 0) { card = this.card; }
+            this.card = card;
+            this.renderTask();
+            this.renderTitle();
         };
-        Board.prototype.renderBoard = function () {
-            this.boardElement = document.createElement("div");
-            this.boardElement.className = "board";
-            this.parentElement.appendChild(this.boardElement);
+        Task.prototype.renderTask = function () {
+            this.taskElement = document.createElement("div");
+            this.taskElement.className = "task " + this.task.status;
+            this.card.tasksElement.appendChild(this.taskElement);
         };
-        Board.prototype.renderColumns = function () {
-            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
+        Task.prototype.renderTitle = function () {
+            var _this = this;
+            this.checkboxElement = document.createElement("input");
+            this.checkboxElement.type = "checkbox";
+            this.checkboxElement.checked = this.task.status === "completed";
+            this.checkboxElement.addEventListener("change", function () {
+                _this.taskElement.className = "task" + (_this.checkboxElement.checked ? " completed" : "");
+                if (_this.checkboxElement.checked) {
+                    _this.task.status = "completed";
+                }
+                else {
+                    _this.task.status = "needsAction";
+                    delete _this.task.completed;
+                }
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            }, false);
+            this.taskElement.appendChild(this.checkboxElement);
+            this.titleElement = document.createElement("span");
+            this.titleElement.className = "title";
+            this.titleElement.innerText = this.task.title;
+            this.titleElement.contentEditable = "true";
+            this.titleElement.addEventListener("input", function () {
+                // remove html tags
+                _this.titleElement.innerText = _this.titleElement.textContent;
+            });
+            this.titleElement.addEventListener("blur", function () {
+                _this.task.title = _this.titleElement.innerText;
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            }, false);
+            this.taskElement.appendChild(this.titleElement);
+        };
+        return Task;
+    })();
+    ViewModels.Task = Task;
+})(ViewModels || (ViewModels = {}));
+var ViewModels;
+(function (ViewModels) {
+    var Column = (function () {
+        function Column(tasksService, taskList, hasAddButton, board, cards) {
+            if (hasAddButton === void 0) { hasAddButton = false; }
+            if (cards === void 0) { cards = []; }
+            this.tasksService = tasksService;
+            this.taskList = taskList;
+            this.hasAddButton = hasAddButton;
+            this.board = board;
+            this.cards = cards;
+        }
+        Column.prototype.render = function (board) {
+            if (board === void 0) { board = this.board; }
+            this.board = board;
+            this.renderColumn();
+            this.renderName();
+            if (this.hasAddButton)
+                this.renderNewCard();
+            this.renderCards();
+        };
+        Column.prototype.renderColumn = function () {
+            this.columnElement = document.createElement("div");
+            this.columnElement.className = "column";
+            this.board.boardElement.appendChild(this.columnElement);
+        };
+        Column.prototype.renderName = function () {
+            this.nameElement = document.createElement("div");
+            this.nameElement.className = "name";
+            this.nameElement.innerText = this.taskList.title;
+            this.columnElement.appendChild(this.nameElement);
+        };
+        Column.prototype.renderNewCard = function () {
+            var _this = this;
+            this.newCardElement = document.createElement("button");
+            this.newCardElement.className = "new";
+            this.newCardElement.innerText = "+";
+            this.newCardElement.addEventListener("click", function () {
+                new Services.Tasks().new(_this.taskList.id, "", function (task) {
+                    var taskViewModel = new ViewModels.Card(_this.tasksService, _this.taskList, task, _this, []);
+                    _this.cards.push(taskViewModel);
+                    taskViewModel.render();
+                    _this.columnElement.insertBefore(_this.columnElement.lastChild, _this.columnElement.children[2]);
+                });
+            });
+            this.columnElement.appendChild(this.newCardElement);
+        };
+        Column.prototype.renderCards = function () {
+            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
                 var c = _a[_i];
-                c.render(this.boardElement);
+                c.render(this);
             }
         };
-        return Board;
+        return Column;
     })();
-    ViewModels.Board = Board;
+    ViewModels.Column = Column;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
     var Card = (function () {
-        function Card(tasksService, taskList, task, tasks, parentElement) {
+        function Card(tasksService, taskList, task, column, tasks) {
             if (tasks === void 0) { tasks = []; }
             this.tasksService = tasksService;
             this.taskList = taskList;
             this.task = task;
+            this.column = column;
             this.tasks = tasks;
-            this.parentElement = parentElement;
         }
-        Card.prototype.render = function (parentElement) {
-            if (parentElement === void 0) { parentElement = this.parentElement; }
-            this.parentElement = parentElement;
+        Card.prototype.render = function (column) {
+            if (column === void 0) { column = this.column; }
+            this.column = column;
             this.renderCard();
             this.renderDue();
             this.renderTitle();
@@ -222,6 +365,7 @@ var ViewModels;
             this.renderTasks();
         };
         Card.prototype.renderCard = function () {
+            var _this = this;
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.task.id;
             this.cardElement.className = "card";
@@ -241,18 +385,64 @@ var ViewModels;
                 var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
                 var targetElement = ev.currentTarget;
                 if (ev.offsetY > ev.currentTarget.clientHeight / 2 - 8) {
-                    cardElement.parentNode.insertBefore(cardElement, targetElement);
+                    targetElement.parentNode.insertBefore(cardElement, targetElement);
                     targetElement.parentNode.insertBefore(targetElement, cardElement);
-                    new Services.Tasks().move(cardElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"));
+                    new Services.Tasks()
+                        .moveAfter(cardElement.getAttribute("tasklistid"), targetElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"), function (newTask, newChildTasks) {
+                        if (newTask) {
+                            var oldTaskListId = cardElement.getAttribute("tasklistid");
+                            var oldColumn = _this.column.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];
+                            var oldTaskId = cardElement.getAttribute("taskid");
+                            var oldCardPos = 0;
+                            oldColumn.cards.forEach(function (c, i) {
+                                if (c.task.id === oldTaskId) {
+                                    oldCardPos = i;
+                                }
+                            });
+                            var card = oldColumn.cards.splice(oldCardPos, 1)[0];
+                            _this.column.cards.push(card);
+                            card.taskList = _this.column.taskList;
+                            card.task = newTask;
+                            card.column = _this.column;
+                            card.cardElement.setAttribute("tasklistid", _this.column.taskList.id);
+                            card.cardElement.setAttribute("taskid", newTask.id);
+                            card.tasks.forEach(function (t, i) {
+                                t.card = card;
+                                t.task = newChildTasks[i];
+                            });
+                        }
+                    });
                 }
                 else {
-                    cardElement.parentNode.insertBefore(cardElement, targetElement);
-                    new Services.Tasks().move(cardElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"), function () {
-                        new Services.Tasks().move(cardElement.getAttribute("tasklistid"), targetElement.getAttribute("taskid"), cardElement.getAttribute("taskid"));
+                    targetElement.parentNode.insertBefore(cardElement, targetElement);
+                    new Services.Tasks()
+                        .moveBefore(cardElement.getAttribute("tasklistid"), targetElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"), function (newTask, newChildTasks) {
+                        if (newTask) {
+                            var oldTaskListId = cardElement.getAttribute("tasklistid");
+                            var oldColumn = _this.column.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];
+                            var oldTaskId = cardElement.getAttribute("taskid");
+                            var oldCardPos = 0;
+                            oldColumn.cards.forEach(function (c, i) {
+                                if (c.task.id === oldTaskId) {
+                                    oldCardPos = i;
+                                }
+                            });
+                            var card = oldColumn.cards.splice(oldCardPos, 1)[0];
+                            _this.column.cards.push(card);
+                            card.taskList = _this.column.taskList;
+                            card.task = newTask;
+                            card.column = _this.column;
+                            card.cardElement.setAttribute("tasklistid", _this.column.taskList.id);
+                            card.cardElement.setAttribute("taskid", newTask.id);
+                            card.tasks.forEach(function (t, i) {
+                                t.card = card;
+                                t.task = newChildTasks[i];
+                            });
+                        }
                     });
                 }
             }, false);
-            this.parentElement.appendChild(this.cardElement);
+            this.column.columnElement.appendChild(this.cardElement);
         };
         Card.prototype.renderDue = function () {
             this.dueElement = document.createElement("div");
@@ -308,7 +498,7 @@ var ViewModels;
             this.newTaskElement.innerText = "+";
             this.newTaskElement.addEventListener("click", function () {
                 new Services.Tasks().new(_this.taskList.id, _this.task.id, function (task) {
-                    var taskViewModel = new ViewModels.Task(_this.tasksService, _this.taskList, task, _this.tasksElement);
+                    var taskViewModel = new ViewModels.Task(_this.tasksService, _this.taskList, task, _this);
                     _this.tasks.push(taskViewModel);
                     taskViewModel.render();
                     _this.tasksElement.insertBefore(_this.tasksElement.lastChild, _this.tasksElement.children[1]);
@@ -317,7 +507,7 @@ var ViewModels;
             this.tasksElement.appendChild(this.newTaskElement);
             for (var _i = 0, _a = this.tasks; _i < _a.length; _i++) {
                 var t = _a[_i];
-                t.render(this.tasksElement);
+                t.render(this);
             }
         };
         return Card;
@@ -326,114 +516,31 @@ var ViewModels;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Column = (function () {
-        function Column(tasksService, taskList, hasAddButton, cards, parentElement) {
-            if (hasAddButton === void 0) { hasAddButton = false; }
-            if (cards === void 0) { cards = []; }
-            this.tasksService = tasksService;
-            this.taskList = taskList;
-            this.hasAddButton = hasAddButton;
-            this.cards = cards;
+    var Board = (function () {
+        function Board(columns, parentElement) {
+            if (columns === void 0) { columns = []; }
+            this.columns = columns;
             this.parentElement = parentElement;
         }
-        Column.prototype.render = function (parentElement) {
+        Board.prototype.render = function (parentElement) {
             if (parentElement === void 0) { parentElement = this.parentElement; }
             this.parentElement = parentElement;
-            this.renderColumn();
-            this.renderName();
-            if (this.hasAddButton)
-                this.renderNewCard();
-            this.renderCards();
+            this.renderBoard();
+            this.renderColumns();
         };
-        Column.prototype.renderColumn = function () {
-            this.columnElement = document.createElement("div");
-            this.columnElement.className = "column";
-            this.parentElement.appendChild(this.columnElement);
+        Board.prototype.renderBoard = function () {
+            this.boardElement = document.createElement("div");
+            this.boardElement.className = "board";
+            this.parentElement.appendChild(this.boardElement);
         };
-        Column.prototype.renderName = function () {
-            this.nameElement = document.createElement("div");
-            this.nameElement.className = "name";
-            this.nameElement.innerText = this.taskList.title;
-            this.columnElement.appendChild(this.nameElement);
-        };
-        Column.prototype.renderNewCard = function () {
-            var _this = this;
-            this.newCardElement = document.createElement("button");
-            this.newCardElement.className = "new";
-            this.newCardElement.innerText = "+";
-            this.newCardElement.addEventListener("click", function () {
-                new Services.Tasks().new(_this.taskList.id, "", function (task) {
-                    var taskViewModel = new ViewModels.Card(_this.tasksService, _this.taskList, task, [], _this.columnElement);
-                    _this.cards.push(taskViewModel);
-                    taskViewModel.render();
-                    _this.columnElement.insertBefore(_this.columnElement.lastChild, _this.columnElement.children[2]);
-                });
-            });
-            this.columnElement.appendChild(this.newCardElement);
-        };
-        Column.prototype.renderCards = function () {
-            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
+        Board.prototype.renderColumns = function () {
+            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
                 var c = _a[_i];
-                c.render(this.columnElement);
+                c.render(this);
             }
         };
-        return Column;
+        return Board;
     })();
-    ViewModels.Column = Column;
-})(ViewModels || (ViewModels = {}));
-var ViewModels;
-(function (ViewModels) {
-    var Task = (function () {
-        function Task(tasksService, taskList, task, parentElement) {
-            this.tasksService = tasksService;
-            this.taskList = taskList;
-            this.task = task;
-            this.parentElement = parentElement;
-        }
-        Task.prototype.render = function (parentElement) {
-            if (parentElement === void 0) { parentElement = this.parentElement; }
-            this.parentElement = parentElement;
-            this.renderTask();
-            this.renderTitle();
-        };
-        Task.prototype.renderTask = function () {
-            this.taskElement = document.createElement("div");
-            this.taskElement.className = "task " + this.task.status;
-            this.parentElement.appendChild(this.taskElement);
-        };
-        Task.prototype.renderTitle = function () {
-            var _this = this;
-            this.checkboxElement = document.createElement("input");
-            this.checkboxElement.type = "checkbox";
-            this.checkboxElement.checked = this.task.status === "completed";
-            this.checkboxElement.addEventListener("change", function () {
-                _this.taskElement.className = "task" + (_this.checkboxElement.checked ? " completed" : "");
-                if (_this.checkboxElement.checked) {
-                    _this.task.status = "completed";
-                }
-                else {
-                    _this.task.status = "needsAction";
-                    delete _this.task.completed;
-                }
-                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
-            }, false);
-            this.taskElement.appendChild(this.checkboxElement);
-            this.titleElement = document.createElement("span");
-            this.titleElement.className = "title";
-            this.titleElement.innerText = this.task.title;
-            this.titleElement.contentEditable = "true";
-            this.titleElement.addEventListener("input", function () {
-                // remove html tags
-                _this.titleElement.innerText = _this.titleElement.textContent;
-            });
-            this.titleElement.addEventListener("blur", function () {
-                _this.task.title = _this.titleElement.innerText;
-                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
-            }, false);
-            this.taskElement.appendChild(this.titleElement);
-        };
-        return Task;
-    })();
-    ViewModels.Task = Task;
+    ViewModels.Board = Board;
 })(ViewModels || (ViewModels = {}));
 //# sourceMappingURL=MyTasksBoard.js.map

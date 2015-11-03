@@ -16,38 +16,33 @@ var App = (function () {
         var tasksService = new Services.Tasks();
         tasksService.loadTaskLists(function (taskLists) {
             var board = new ViewModels.Board([], document.getElementById("app"));
-            var columnCompleted = new ViewModels.Column("Abgeschlossen");
+            var columnCompleted = new ViewModels.Column(tasksService, { title: "Abgeschlossen", etag: "", id: "", kind: "", selfLink: "", updated: "" });
             taskLists.reverse();
             taskLists.unshift(taskLists.pop());
+            var first = true;
             taskLists.forEach(function (taskList) {
-                var column = new ViewModels.Column(taskList.title);
+                var column = new ViewModels.Column(tasksService, taskList, first);
+                first = false;
                 board.columns.push(column);
                 tasksService.loadTasks(taskList.id, function (tasks) {
                     tasks.forEach(function (task) {
-                        var card = new ViewModels.Card(tasksService, taskList.id, task.id, task.title, task.notes, task.due);
-                        card.onTitleChange = function (newValue) {
-                            task.title = newValue;
-                            tasksService.update(task, taskList.id, task.id);
-                        };
-                        card.onDescriptionChange = function (newValue) {
-                            task.notes = newValue;
-                            tasksService.update(task, taskList.id, task.id);
-                        };
+                        var card = new ViewModels.Card(tasksService, taskList, task);
                         tasks.forEach(function (childTask) {
                             if (task.id === childTask.parent) {
-                                card.tasks.push(new ViewModels.Task(typeof childTask.completed != "undefined", childTask.title));
+                                var taskViewModel = new ViewModels.Task(tasksService, taskList, childTask);
+                                card.tasks.push(taskViewModel);
                             }
                         });
                         if (!task.parent) {
                             if (!task.completed) {
                                 if (!task.hidden) {
                                     column.cards.push(card);
-                                    card.render(column.columnElement);
+                                    card.render(column);
                                 }
                             }
                             else {
                                 columnCompleted.cards.push(card);
-                                card.render(columnCompleted.columnElement);
+                                card.render(columnCompleted);
                             }
                         }
                     });

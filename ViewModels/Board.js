@@ -20,7 +20,7 @@ var ViewModels;
         Board.prototype.renderColumns = function () {
             for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
                 var c = _a[_i];
-                c.render(this.boardElement);
+                c.render(this);
             }
         };
         return Board;

@@ -75,12 +75,13 @@ declare module gapi.client {
                 */
                 updatedMin?: string;
             }): HttpRequest<GoogleApiTasksTasksListResponse>;
-
+            get(object: { tasklist: string, task: string }): HttpRequest<Task>;
             /**
-             * Creates a new task on the specified task list. 
+             * Creates a new task on the specified task list.
              */
-            insert(object: { tasklist: string, parent?: string, previous?: string }): HttpRequest<Task>;
+            insert(object: { tasklist: string, parent?: string, previous?: string }, task?: Task): HttpRequest<Task>;
             update(object: { tasklist: string, task: string }, task: Task): HttpRequest<Task>;
+            delete(object: { tasklist: string, task: string }): HttpRequest<void>;
             move(object: { tasklist: string, task: string, parent?: string, previous?: string }): HttpRequest<Task>;
         }
     }

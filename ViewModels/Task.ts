@@ -8,11 +8,11 @@
             public tasksService: Services.Tasks,
             public taskList: gapi.client.TaskList,
             public task: gapi.client.Task,
-            public parentElement?: HTMLElement
+            public card?: Card
         ) { }
 
-        public render(parentElement = this.parentElement) {
-            this.parentElement = parentElement;
+        public render(card = this.card) {
+            this.card = card;
 
             this.renderTask();
 
@@ -22,7 +22,7 @@
         private renderTask() {
             this.taskElement = document.createElement("div");
             this.taskElement.className = "task " + this.task.status;
-            this.parentElement.appendChild(this.taskElement);
+            this.card.tasksElement.appendChild(this.taskElement);
         }
 
         private renderTitle() {

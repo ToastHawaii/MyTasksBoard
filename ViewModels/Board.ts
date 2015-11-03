@@ -24,7 +24,7 @@
 
         private renderColumns() {
             for (let c of this.columns) {
-                c.render(this.boardElement);
+                c.render(this);
             }
         }
     }

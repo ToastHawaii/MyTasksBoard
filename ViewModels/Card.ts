@@ -11,12 +11,12 @@
             public tasksService: Services.Tasks,
             public taskList: gapi.client.TaskList,
             public task: gapi.client.Task,
-            public tasks: Task[] = [],
-            public parentElement?: HTMLElement
+            public column?: Column,
+            public tasks: Task[] = []
         ) { }
 
-        public render(parentElement = this.parentElement) {
-            this.parentElement = parentElement;
+        public render(column = this.column) {
+            this.column = column;
 
             this.renderCard();
 
@@ -51,17 +51,75 @@
                 let targetElement = <HTMLDivElement>ev.currentTarget;
 
                 if (ev.offsetY > (<HTMLDivElement>ev.currentTarget).clientHeight / 2 - 8) {
-                    cardElement.parentNode.insertBefore(cardElement, targetElement);
+                    targetElement.parentNode.insertBefore(cardElement, targetElement);
                     targetElement.parentNode.insertBefore(targetElement, cardElement);
-                    new Services.Tasks().move(cardElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"));
+                    new Services.Tasks()
+                        .moveAfter(cardElement.getAttribute("tasklistid"), targetElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"),
+                        (newTask, newChildTasks) => {
+                            if (newTask) {
+                                let oldTaskListId = cardElement.getAttribute("tasklistid");
+                                let oldColumn = this.column.board.columns.filter(c => c.taskList.id === oldTaskListId)[0];
+                                let oldTaskId = cardElement.getAttribute("taskid");
+
+                                let oldCardPos = 0;
+                                oldColumn.cards.forEach((c, i) => {
+                                    if (c.task.id === oldTaskId) {
+                                        oldCardPos = i;
+                                    }
+                                });
+
+                                let card = oldColumn.cards.splice(oldCardPos, 1)[0];
+
+                                this.column.cards.push(card);
+                                card.taskList = this.column.taskList;
+                                card.task = newTask;
+                                card.column = this.column;
+
+                                card.cardElement.setAttribute("tasklistid", this.column.taskList.id);
+                                card.cardElement.setAttribute("taskid", newTask.id);
+
+                                card.tasks.forEach((t, i) => {
+                                    t.card = card;
+                                    t.task = newChildTasks[i];
+                                });
+                            }
+                        });
                 } else {
-                    cardElement.parentNode.insertBefore(cardElement, targetElement);
-                    new Services.Tasks().move(cardElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"), () => {
-                        new Services.Tasks().move(cardElement.getAttribute("tasklistid"), targetElement.getAttribute("taskid"), cardElement.getAttribute("taskid"));
-                    });
+                    targetElement.parentNode.insertBefore(cardElement, targetElement);
+                    new Services.Tasks()
+                        .moveBefore(cardElement.getAttribute("tasklistid"), targetElement.getAttribute("tasklistid"), cardElement.getAttribute("taskid"), targetElement.getAttribute("taskid"),
+                        (newTask, newChildTasks) => {
+                            if (newTask) {
+                                let oldTaskListId = cardElement.getAttribute("tasklistid");
+                                let oldColumn = this.column.board.columns.filter(c => c.taskList.id === oldTaskListId)[0];
+                                let oldTaskId = cardElement.getAttribute("taskid");
+
+                                let oldCardPos = 0;
+                                oldColumn.cards.forEach((c, i) => {
+                                    if (c.task.id === oldTaskId) {
+                                        oldCardPos = i;
+                                    }
+                                });
+
+                                let card = oldColumn.cards.splice(oldCardPos, 1)[0];
+
+                                this.column.cards.push(card);
+                                card.taskList = this.column.taskList;
+                                card.task = newTask;
+                                card.column = this.column;
+
+                                card.cardElement.setAttribute("tasklistid", this.column.taskList.id);
+                                card.cardElement.setAttribute("taskid", newTask.id);
+
+                                card.tasks.forEach((t, i) => {
+                                    t.card = card;
+                                    t.task = newChildTasks[i];
+                                });
+                            }
+                        });
                 }
             }, false);
-            this.parentElement.appendChild(this.cardElement);
+            this.column.columnElement.appendChild(this.cardElement);
         }
 
         private renderDue() {
@@ -84,10 +142,8 @@
                 this.titleElement.innerText = this.titleElement.textContent;
             });
             this.titleElement.addEventListener("blur", () => {
-
                 this.task.title = this.titleElement.innerText;
                 this.tasksService.update(this.task, this.taskList.id, this.task.id);
-
             }, false);
             this.cardElement.appendChild(this.titleElement);
         }
@@ -121,7 +177,7 @@
             this.newTaskElement.innerText = "+";
             this.newTaskElement.addEventListener("click", () => {
                 new Services.Tasks().new(this.taskList.id, this.task.id, task => {
-                    let taskViewModel = new Task(this.tasksService, this.taskList, task, this.tasksElement);
+                    let taskViewModel = new Task(this.tasksService, this.taskList, task, this);
                     this.tasks.push(taskViewModel);
                     taskViewModel.render();
                     this.tasksElement.insertBefore(this.tasksElement.lastChild, this.tasksElement.children[1]);
@@ -130,9 +186,8 @@
             this.tasksElement.appendChild(this.newTaskElement);
 
             for (let t of this.tasks) {
-                t.render(this.tasksElement);
+                t.render(this);
             }
-
         }
     }
 }  

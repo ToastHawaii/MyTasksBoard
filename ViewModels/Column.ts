@@ -8,12 +8,12 @@
             public tasksService: Services.Tasks,
             public taskList: gapi.client.TaskList,
             public hasAddButton = false,
-            public cards: Card[] = [],
-            public parentElement?: HTMLElement
+            public board?: Board,
+            public cards: Card[] = []
         ) { }
 
-        public render(parentElement = this.parentElement) {
-            this.parentElement = parentElement;
+        public render(board = this.board) {
+            this.board = board;
 
             this.renderColumn();
 
@@ -28,7 +28,7 @@
         private renderColumn() {
             this.columnElement = document.createElement("div");
             this.columnElement.className = "column";
-            this.parentElement.appendChild(this.columnElement);
+            this.board.boardElement.appendChild(this.columnElement);
         }
 
         private renderName() {
@@ -44,7 +44,7 @@
             this.newCardElement.innerText = "+";
             this.newCardElement.addEventListener("click", () => {
                 new Services.Tasks().new(this.taskList.id, "", task => {
-                    let taskViewModel = new Card(this.tasksService, this.taskList, task, [], this.columnElement);
+                    let taskViewModel = new Card(this.tasksService, this.taskList, task, this, []);
                     this.cards.push(taskViewModel);
                     taskViewModel.render();
                     this.columnElement.insertBefore(this.columnElement.lastChild, this.columnElement.children[2]);
@@ -55,7 +55,7 @@
 
         private renderCards() {
             for (let c of this.cards) {
-                c.render(this.columnElement);
+                c.render(this);
             }
         }
     }

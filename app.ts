@@ -1,4 +1,6 @@
 ﻿class App {
+    board: ViewModels.Board;
+
     private checkAuthCallback = (authorized: boolean) => {
         var authorizeButton = document.getElementById("authorize");
         if (authorized) {
@@ -17,9 +19,9 @@
         let tasksService = new Services.Tasks();
 
         tasksService.loadTaskLists(taskLists => {
-            let board = new ViewModels.Board([], document.getElementById("app"));
+            this.board = new ViewModels.Board([], document.getElementById("app"));
 
-            let columnCompleted = new ViewModels.Column(tasksService, { title: "Abgeschlossen", etag: "", id: "", kind: "", selfLink: "", updated: "" });
+            let columnCompleted = new ViewModels.Column(tasksService, { title: "Abgeschlossen", etag: "", id: "", kind: "", selfLink: "", updated: "" }, false, true);
 
             // get in create order
             taskLists.reverse();
@@ -29,7 +31,7 @@
             taskLists.forEach(taskList => {
                 let column = new ViewModels.Column(tasksService, taskList, first);
                 first = false;
-                board.columns.push(column);
+                this.board.columns.push(column);
 
                 tasksService.loadTasks(taskList.id, tasks => {
                     tasks.forEach(task => {
@@ -57,9 +59,9 @@
                 });
             });
 
-            board.columns.push(columnCompleted);
-            board.render();
-            board.columns[board.columns.length - 1].columnElement.className += " completed";
+            this.board.columns.push(columnCompleted);
+            this.board.render();
+            this.board.columns[this.board.columns.length - 1].columnElement.className += " completed";
         });
     }
 

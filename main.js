@@ -1,3 +1,4 @@
 window.onload = function () {
-    new App().start();
+    app = new App();
+    app.start();
 };

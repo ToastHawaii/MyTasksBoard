@@ -99,11 +99,12 @@ var ViewModels;
             this.column.columnElement.appendChild(this.cardElement);
         };
         Card.prototype.renderDue = function () {
-            this.dueElement = document.createElement("div");
+            this.dueElement = document.createElement("input");
+            this.dueElement.type = "date";
             this.dueElement.className = "due";
             if (this.task.due) {
                 var dueDate = new Date(this.task.due);
-                this.dueElement.innerText = dueDate.getDate() + "." + (dueDate.getMonth() + 1) + "." + dueDate.getFullYear();
+                this.dueElement.valueAsDate = dueDate;
             }
             this.cardElement.appendChild(this.dueElement);
         };

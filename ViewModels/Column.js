@@ -1,12 +1,14 @@
 var ViewModels;
 (function (ViewModels) {
     var Column = (function () {
-        function Column(tasksService, taskList, hasAddButton, board, cards) {
+        function Column(tasksService, taskList, hasAddButton, completeTasks, board, cards) {
             if (hasAddButton === void 0) { hasAddButton = false; }
+            if (completeTasks === void 0) { completeTasks = false; }
             if (cards === void 0) { cards = []; }
             this.tasksService = tasksService;
             this.taskList = taskList;
             this.hasAddButton = hasAddButton;
+            this.completeTasks = completeTasks;
             this.board = board;
             this.cards = cards;
         }
@@ -20,8 +22,32 @@ var ViewModels;
             this.renderCards();
         };
         Column.prototype.renderColumn = function () {
+            var _this = this;
             this.columnElement = document.createElement("div");
             this.columnElement.className = "column";
+            if (this.completeTasks) {
+                this.columnElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
+                this.columnElement.addEventListener("drop", function (ev) {
+                    ev.preventDefault();
+                    var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
+                    var targetElement = ev.currentTarget;
+                    targetElement.insertBefore(cardElement, targetElement.childNodes[1]);
+                    var oldTaskListId = cardElement.getAttribute("tasklistid");
+                    var oldColumn = app.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];
+                    var oldTaskId = cardElement.getAttribute("taskid");
+                    var oldCardPos = 0;
+                    oldColumn.cards.forEach(function (c, i) {
+                        if (c.task.id === oldTaskId) {
+                            oldCardPos = i;
+                        }
+                    });
+                    var card = oldColumn.cards.splice(oldCardPos, 1)[0];
+                    card.task.status = "completed";
+                    new Services.Tasks().update(card.task, oldTaskListId, oldTaskId, function () {
+                        _this.cards.unshift(card);
+                    });
+                });
+            }
             this.board.boardElement.appendChild(this.columnElement);
         };
         Column.prototype.renderName = function () {

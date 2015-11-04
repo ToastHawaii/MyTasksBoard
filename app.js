@@ -13,17 +13,18 @@ var App = (function () {
         };
     }
     App.prototype.render = function () {
+        var _this = this;
         var tasksService = new Services.Tasks();
         tasksService.loadTaskLists(function (taskLists) {
-            var board = new ViewModels.Board([], document.getElementById("app"));
-            var columnCompleted = new ViewModels.Column(tasksService, { title: "Abgeschlossen", etag: "", id: "", kind: "", selfLink: "", updated: "" });
+            _this.board = new ViewModels.Board([], document.getElementById("app"));
+            var columnCompleted = new ViewModels.Column(tasksService, { title: "Abgeschlossen", etag: "", id: "", kind: "", selfLink: "", updated: "" }, false, true);
             taskLists.reverse();
             taskLists.unshift(taskLists.pop());
             var first = true;
             taskLists.forEach(function (taskList) {
                 var column = new ViewModels.Column(tasksService, taskList, first);
                 first = false;
-                board.columns.push(column);
+                _this.board.columns.push(column);
                 tasksService.loadTasks(taskList.id, function (tasks) {
                     tasks.forEach(function (task) {
                         var card = new ViewModels.Card(tasksService, taskList, task);
@@ -48,9 +49,9 @@ var App = (function () {
                     });
                 });
             });
-            board.columns.push(columnCompleted);
-            board.render();
-            board.columns[board.columns.length - 1].columnElement.className += " completed";
+            _this.board.columns.push(columnCompleted);
+            _this.board.render();
+            _this.board.columns[_this.board.columns.length - 1].columnElement.className += " completed";
         });
     };
     App.prototype.start = function () {

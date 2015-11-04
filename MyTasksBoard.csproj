@@ -29,7 +29,7 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="App.ts" />
     <TypeScriptCompile Include="main.ts" />
     <TypeScriptCompile Include="Services\Auth.ts" />
     <TypeScriptCompile Include="Services\Tasks.ts" />

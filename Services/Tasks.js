@@ -47,7 +47,7 @@ var Services;
         Tasks.prototype.moveBefore = function (fromTaskListId, toTaskListId, taskId, followTaskId, callback) {
             var _this = this;
             this.moveAfter(fromTaskListId, toTaskListId, taskId, followTaskId, function (task) {
-                _this.moveAfter(toTaskListId, toTaskListId, followTaskId, task.id, callback);
+                _this.moveAfter(toTaskListId, toTaskListId, followTaskId, task ? task.id : taskId, callback);
             });
         };
         Tasks.prototype.moveAfter = function (fromTaskListId, toTaskListId, taskId, previousTaskId, callback) {
@@ -77,6 +77,7 @@ var Services;
                                     var index = 0;
                                     var moveChild = function () {
                                         var childTask = oldChildTasks[index];
+                                        var oldChildTaskId = childTask.id;
                                         delete childTask.id;
                                         delete childTask.selfLink;
                                         delete childTask.parent;
@@ -85,6 +86,7 @@ var Services;
                                         delete childTask.links;
                                         var request = gapi.client.tasks.tasks.insert({ tasklist: toTaskListId, parent: newTask.id }, childTask);
                                         request.execute(function (childTask) {
+                                            var request = gapi.client.tasks.tasks.delete({ tasklist: fromTaskListId, task: oldChildTaskId }).execute(function () { });
                                             newChildTasks.unshift(childTask);
                                             if (index + 1 === oldChildTasks.length) {
                                                 var request_2 = gapi.client.tasks.tasks.delete({ tasklist: fromTaskListId, task: taskId });
@@ -94,9 +96,9 @@ var Services;
                                                 });
                                             }
                                             else {
+                                                index++;
                                                 moveChild();
                                             }
-                                            index++;
                                         });
                                     };
                                     moveChild();

@@ -30,11 +30,15 @@ html, body {
 .board {
     min-height: 100%;
     display: flex;
+    -ms-flex-wrap: nowrap;
+    -webkit-flex-wrap: nowrap;
     flex-wrap: nowrap;
 }
 
 .column {
     margin: 5px;
+    -ms-flex: 1;
+    -webkit-flex: 1;
     flex: 1;
     min-width: 220px;
     max-width: 400px;
@@ -54,7 +58,7 @@ html, body {
         font-size: 30px;
         line-height: 0.55;
         padding: 6px;
-        box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
         background: white;
         border: none;
         border-left: 5px solid #2890ff;
@@ -78,7 +82,7 @@ html, body {
     }
 
 .card {
-    box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
     margin: 10px;
     min-height: 66px;
     background-color: white;

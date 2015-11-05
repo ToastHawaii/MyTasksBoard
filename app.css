@@ -212,17 +212,15 @@ html, body {
 }
 
     .task > input[type=checkbox] {
-        vertical-align: middle;
+        float: left;
     }
 
     .task > .title {
-        display: inline-block;
-        margin-left: 3px;
-        width: calc(100% - 20px);
-        padding: 2px;
-        vertical-align: text-top;
+        display: block;
+        margin-left: 16px;
         font-size: 12px;
         cursor: text;
+        margin: 6px 0 6px 18px;
     }
 
         .task > .title:hover,

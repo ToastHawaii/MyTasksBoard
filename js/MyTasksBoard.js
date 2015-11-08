@@ -74,25 +74,119 @@ window.onload = function () {
     app = new App();
     app.start();
 };
-function touchHandler(event) {
-    var touch = event.changedTouches[0];
-    var simulatedEvent = document.createEvent("MouseEvent");
-    var asdf = {
-        touchstart: "mousedown",
-        touchmove: "mousemove",
-        touchend: "mouseup"
-    };
-    simulatedEvent.initMouseEvent(asdf[event.type], true, true, window, 1, touch.screenX, touch.screenY, touch.clientX, touch.clientY, false, false, false, false, 0, null);
-    touch.target.dispatchEvent(simulatedEvent);
-    event.preventDefault();
-}
 function init() {
-    document.addEventListener("touchstart", touchHandler, true);
-    document.addEventListener("touchmove", touchHandler, true);
-    document.addEventListener("touchend", touchHandler, true);
-    document.addEventListener("touchcancel", touchHandler, true);
+    var draggables = document.getElementsByClassName("a-draggable");
+    for (var i = 0; i < draggables.length; i++) {
+        var d = draggables[i];
+        d.setAttribute("draggable", "true");
+        d.addEventListener("dragstart", function (ev) {
+            var source = ev.target;
+            document.aDragSource = source;
+            document.aDragSource.classList.add("a-drag");
+            document.aDragSource.style.position = "relative";
+            startX = ev.clientX;
+            startY = ev.clientY;
+            document.aDragSource.style.left = 0 + "px";
+            document.aDragSource.style.top = 0 + "px";
+        }, false);
+        var startX = 0;
+        var startY = 0;
+        d.addEventListener("touchstart", function (ev) {
+            ev.preventDefault();
+            var source = ev.target;
+            document.aDragSource = closet(source, "a-draggable");
+            if (document.aDragSource) {
+                document.aDragSource.classList.add("a-drag");
+                document.aDragSource.style.position = "relative";
+                startX = ev.changedTouches[0].clientX;
+                startY = ev.changedTouches[0].clientY;
+                document.aDragSource.style.left = 0 + "px";
+                document.aDragSource.style.top = 0 + "px";
+            }
+        }, true);
+        d.addEventListener("dragend", function (ev) {
+            var source = ev.target;
+            document.aDragSource = closet(source, "a-draggable");
+            if (document.aDragSource) {
+                document.aDragSource.classList.remove("a-drag");
+            }
+        }, false);
+        d.addEventListener("drag", function (ev) {
+            ev.preventDefault();
+            var source = ev.target;
+            document.aDragSource = closet(source, "a-draggable");
+            if (document.aDragSource) {
+                document.aDragSource.style.left = ev.movementX + "px";
+                document.aDragSource.style.top = ev.movementY + "px";
+            }
+        }, true);
+        d.addEventListener("touchmove", function (ev) {
+            ev.preventDefault();
+            var source = ev.target;
+            document.aDragSource = closet(source, "a-draggable");
+            if (document.aDragSource) {
+                document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
+                document.aDragSource.style.top = ev.changedTouches[0].clientY - startY + "px";
+            }
+        }, true);
+        d.addEventListener("touchend", function (ev) {
+            ev.preventDefault();
+            var source = ev.target;
+            document.aDragSource = closet(source, "a-draggable");
+            if (document.aDragSource) {
+                document.aDragSource.classList.remove("a-drag");
+                document.aDragSource.style.position = "";
+                document.aDragTarget = document.elementFromPoint(ev.changedTouches[0].clientX, ev.changedTouches[0].clientY);
+                document.aDragTarget = closet(document.aDragTarget, "a-dropzone");
+                if (document.aDragTarget) {
+                    var aDropEvent = new Event("a-drop");
+                    aDropEvent.dragTarget = document.aDragTarget;
+                    aDropEvent.dragSource = document.aDragSource;
+                    if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.changedTouches[0].clientY) {
+                        aDropEvent.dragTop = true;
+                        aDropEvent.dragBottom = false;
+                    }
+                    else {
+                        aDropEvent.dragTop = false;
+                        aDropEvent.dragBottom = true;
+                    }
+                    document.aDragTarget.dispatchEvent(aDropEvent);
+                }
+            }
+        }, true);
+    }
+    var dropzones = document.getElementsByClassName("a-dropzone");
+    for (var i = 0; i < dropzones.length; i++) {
+        var d = dropzones[i];
+        d.addEventListener("dragover", function (ev) {
+            ev.preventDefault();
+        }, false);
+        d.addEventListener("drop", function (ev) {
+            document.aDragTarget = ev.currentTarget;
+            document.aDragTarget = closet(document.aDragTarget, "a-dropzone");
+            var aDropEvent = new Event("a-drop");
+            aDropEvent.dragTarget = document.aDragTarget;
+            aDropEvent.dragSource = document.aDragSource;
+            if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.clientY) {
+                aDropEvent.dragTop = true;
+                aDropEvent.dragBottom = false;
+            }
+            else {
+                aDropEvent.dragTop = false;
+                aDropEvent.dragBottom = true;
+            }
+            document.aDragTarget.dispatchEvent(aDropEvent);
+        }, false);
+    }
 }
-init();
+function closet(element, className) {
+    if (element.classList.contains(className))
+        return element;
+    while ((element = element.parentElement) && !element.classList.contains(className))
+        ;
+    return element;
+}
+setTimeout(init, 3000);
 var Services;
 (function (Services) {
     var Auth = (function () {
@@ -417,23 +511,14 @@ var ViewModels;
             var _this = this;
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.task.id;
-            this.cardElement.className = "card";
+            this.cardElement.className = "card a-draggable a-dropzone";
             this.cardElement.draggable = true;
             this.cardElement.setAttribute("tasklistid", this.taskList.id);
             this.cardElement.setAttribute("taskid", this.task.id);
-            this.cardElement.addEventListener("dragstart", function (ev) {
-                ev.target.style.opacity = "0.4";
-                ev.dataTransfer.setData("text", ev.target.id);
-            }, false);
-            this.cardElement.addEventListener("dragend", function (ev) {
-                ev.target.style.opacity = "";
-            }, false);
-            this.cardElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
-            this.cardElement.addEventListener("drop", function (ev) {
-                ev.preventDefault();
-                var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
-                var targetElement = ev.currentTarget;
-                if (ev.offsetY > ev.currentTarget.clientHeight / 2 - 8) {
+            this.cardElement.addEventListener("a-drop", function (ev) {
+                var cardElement = ev.dragSource;
+                var targetElement = ev.dragTarget;
+                if (ev.dragTop) {
                     targetElement.parentNode.insertBefore(cardElement, targetElement);
                     targetElement.parentNode.insertBefore(targetElement, cardElement);
                     new Services.Tasks()
@@ -490,7 +575,7 @@ var ViewModels;
                         }
                     });
                 }
-            }, false);
+            });
             this.column.columnElement.appendChild(this.cardElement);
         };
         Card.prototype.renderDue = function () {

@@ -32,25 +32,16 @@
         private renderCard() {
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.task.id;
-            this.cardElement.className = "card";
+            this.cardElement.className = "card a-draggable a-dropzone";
             this.cardElement.draggable = true;
             this.cardElement.setAttribute("tasklistid", this.taskList.id);
             this.cardElement.setAttribute("taskid", this.task.id);
 
-            this.cardElement.addEventListener("dragstart", ev => {
-                (<HTMLDivElement>ev.target).style.opacity = "0.4";
-                ev.dataTransfer.setData("text", (<HTMLDivElement>ev.target).id);
-            }, false);
-            this.cardElement.addEventListener("dragend", ev => {
-                (<HTMLDivElement>ev.target).style.opacity = "";
-            }, false);
-            this.cardElement.addEventListener("dragover", ev => { ev.preventDefault(); }, false);
-            this.cardElement.addEventListener("drop", ev => {
-                ev.preventDefault();
-                let cardElement = document.getElementById(ev.dataTransfer.getData("text"));
-                let targetElement = <HTMLDivElement>ev.currentTarget;
+            this.cardElement.addEventListener("a-drop", ev=> {
+                let cardElement = ev.dragSource;
+                let targetElement = ev.dragTarget;
 
-                if (ev.offsetY > (<HTMLDivElement>ev.currentTarget).clientHeight / 2 - 8) {
+                if (ev.dragTop) {
                     targetElement.parentNode.insertBefore(cardElement, targetElement);
                     targetElement.parentNode.insertBefore(targetElement, cardElement);
                     new Services.Tasks()
@@ -118,7 +109,8 @@
                             }
                         });
                 }
-            }, false);
+            });
+
             this.column.columnElement.appendChild(this.cardElement);
         }
 

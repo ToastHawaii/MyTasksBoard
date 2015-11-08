@@ -22,23 +22,14 @@ var ViewModels;
             var _this = this;
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.task.id;
-            this.cardElement.className = "card";
+            this.cardElement.className = "card a-draggable a-dropzone";
             this.cardElement.draggable = true;
             this.cardElement.setAttribute("tasklistid", this.taskList.id);
             this.cardElement.setAttribute("taskid", this.task.id);
-            this.cardElement.addEventListener("dragstart", function (ev) {
-                ev.target.style.opacity = "0.4";
-                ev.dataTransfer.setData("text", ev.target.id);
-            }, false);
-            this.cardElement.addEventListener("dragend", function (ev) {
-                ev.target.style.opacity = "";
-            }, false);
-            this.cardElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
-            this.cardElement.addEventListener("drop", function (ev) {
-                ev.preventDefault();
-                var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
-                var targetElement = ev.currentTarget;
-                if (ev.offsetY > ev.currentTarget.clientHeight / 2 - 8) {
+            this.cardElement.addEventListener("a-drop", function (ev) {
+                var cardElement = ev.dragSource;
+                var targetElement = ev.dragTarget;
+                if (ev.dragTop) {
                     targetElement.parentNode.insertBefore(cardElement, targetElement);
                     targetElement.parentNode.insertBefore(targetElement, cardElement);
                     new Services.Tasks()
@@ -95,7 +86,7 @@ var ViewModels;
                         }
                     });
                 }
-            }, false);
+            });
             this.column.columnElement.appendChild(this.cardElement);
         };
         Card.prototype.renderDue = function () {

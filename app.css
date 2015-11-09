@@ -99,6 +99,12 @@ html, body {
         cursor: text;
     }
 
+        .card > .title:empty:hover:after,
+        .card > .title:empty:active:after,
+        .card > .title:empty:focus:after {
+            content: attr(title);
+        }
+
         .card > .title:hover,
         .card > .title:active,
         .card > .title:focus {
@@ -114,6 +120,12 @@ html, body {
         white-space: pre-wrap;
         cursor: text;
     }
+
+        .card > .description:empty:hover:after,
+        .card > .description:empty:active:after,
+        .card > .description:empty:focus:after {
+            content: attr(title);
+        }
 
         .card > .description:hover,
         .card > .description:active,
@@ -137,53 +149,63 @@ html, body {
         color: #ccc;
     }
 
-        .card > .due::-webkit-datetime-edit-text {
-            position: relative;
-            left: 15px;
+    .card > input[type=date][value=""].due {
+        color: transparent;
+    }
+
+        .card > input[type=date][value=""].due:hover,
+        .card > input[type=date][value=""].due:active,
+        .card > input[type=date][value=""].due:focus {
+            color: #ccc;
         }
 
-        .card > .due::-webkit-datetime-edit-month-field {
-            position: relative;
-            left: 15px;
-        }
+    .card > .due::-webkit-datetime-edit-text {
+        position: relative;
+        left: 15px;
+    }
 
-        .card > .due::-webkit-datetime-edit-day-field {
-            position: relative;
-            left: 15px;
-        }
+    .card > .due::-webkit-datetime-edit-month-field {
+        position: relative;
+        left: 15px;
+    }
 
-        .card > .due::-webkit-datetime-edit-year-field {
-            position: relative;
-            left: 15px;
-        }
+    .card > .due::-webkit-datetime-edit-day-field {
+        position: relative;
+        left: 15px;
+    }
 
-        .card > .due::-webkit-inner-spin-button {
-            display: none;
-        }
+    .card > .due::-webkit-datetime-edit-year-field {
+        position: relative;
+        left: 15px;
+    }
 
-        .card > .due::-webkit-calendar-picker-indicator {
-            position: relative;
-            right: 84px;
-            margin-right: -15px;
-        }
+    .card > .due::-webkit-inner-spin-button {
+        display: none;
+    }
 
-        .card > .due::-webkit-datetime-edit {
-            padding: 0;
-            margin-right: -10px;
-        }
+    .card > .due::-webkit-calendar-picker-indicator {
+        position: relative;
+        right: 84px;
+        margin-right: -15px;
+    }
 
-        .card > .due::-webkit-datetime-edit-fields-wrapper {
-            margin-right: -10px;
-            margin-left: -10px;
-        }
+    .card > .due::-webkit-datetime-edit {
+        padding: 0;
+        margin-right: -10px;
+    }
 
-        .card > .due:hover,
-        .card > .due:active,
-        .card > .due:focus {
-            outline: none;
-            border: 1px solid #999;
-            background-color: #eee;
-        }
+    .card > .due::-webkit-datetime-edit-fields-wrapper {
+        margin-right: -10px;
+        margin-left: -10px;
+    }
+
+    .card > .due:hover,
+    .card > .due:active,
+    .card > .due:focus {
+        outline: none;
+        border: 1px solid #999;
+        background-color: #eee;
+    }
 
     .card > .tasks {
         margin-top: 5px;
@@ -227,6 +249,11 @@ html, body {
         cursor: text;
         margin: 6px 0 6px 18px;
     }
+        .task > .title:empty:hover:after,
+        .task > .title:empty:active:after,
+        .task > .title:empty:focus:after {
+            content: attr(title);
+        }
 
         .task > .title:hover,
         .task > .title:active,

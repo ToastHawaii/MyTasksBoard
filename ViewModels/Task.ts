@@ -46,6 +46,7 @@
             this.titleElement = document.createElement("span");
             this.titleElement.className = "title";
             this.titleElement.innerText = this.task.title;
+            this.titleElement.title = "Task";
             this.titleElement.contentEditable = "true";
             this.titleElement.addEventListener("input", () => {
                 // remove html tags

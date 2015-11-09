@@ -83,11 +83,6 @@ function init() {
             var source = ev.target;
             document.aDragSource = source;
             document.aDragSource.classList.add("a-drag");
-            document.aDragSource.style.position = "relative";
-            startX = ev.clientX;
-            startY = ev.clientY;
-            document.aDragSource.style.left = 0 + "px";
-            document.aDragSource.style.top = 0 + "px";
         }, false);
         var startX = 0;
         var startY = 0;
@@ -103,7 +98,7 @@ function init() {
                 document.aDragSource.style.left = 0 + "px";
                 document.aDragSource.style.top = 0 + "px";
             }
-        }, true);
+        }, false);
         d.addEventListener("dragend", function (ev) {
             var source = ev.target;
             document.aDragSource = closet(source, "a-draggable");
@@ -111,15 +106,6 @@ function init() {
                 document.aDragSource.classList.remove("a-drag");
             }
         }, false);
-        d.addEventListener("drag", function (ev) {
-            ev.preventDefault();
-            var source = ev.target;
-            document.aDragSource = closet(source, "a-draggable");
-            if (document.aDragSource) {
-                document.aDragSource.style.left = ev.movementX + "px";
-                document.aDragSource.style.top = ev.movementY + "px";
-            }
-        }, true);
         d.addEventListener("touchmove", function (ev) {
             ev.preventDefault();
             var source = ev.target;
@@ -128,9 +114,13 @@ function init() {
                 document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
                 document.aDragSource.style.top = ev.changedTouches[0].clientY - startY + "px";
             }
-        }, true);
+        }, false);
         d.addEventListener("touchend", function (ev) {
             ev.preventDefault();
+            ev.target.focus();
+            if (ev.target.nodeName.toUpperCase() === "BUTTON") {
+                ev.target.click();
+            }
             var source = ev.target;
             document.aDragSource = closet(source, "a-draggable");
             if (document.aDragSource) {
@@ -153,7 +143,7 @@ function init() {
                     document.aDragTarget.dispatchEvent(aDropEvent);
                 }
             }
-        }, true);
+        }, false);
     }
     var dropzones = document.getElementsByClassName("a-dropzone");
     for (var i = 0; i < dropzones.length; i++) {
@@ -351,141 +341,32 @@ var Services;
 })(Services || (Services = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Task = (function () {
-        function Task(tasksService, taskList, task, card) {
-            this.tasksService = tasksService;
-            this.taskList = taskList;
-            this.task = task;
-            this.card = card;
+    var Board = (function () {
+        function Board(columns, parentElement) {
+            if (columns === void 0) { columns = []; }
+            this.columns = columns;
+            this.parentElement = parentElement;
         }
-        Task.prototype.render = function (card) {
-            if (card === void 0) { card = this.card; }
-            this.card = card;
-            this.renderTask();
-            this.renderTitle();
+        Board.prototype.render = function (parentElement) {
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderBoard();
+            this.renderColumns();
         };
-        Task.prototype.renderTask = function () {
-            this.taskElement = document.createElement("div");
-            this.taskElement.className = "task " + this.task.status;
-            this.card.tasksElement.appendChild(this.taskElement);
+        Board.prototype.renderBoard = function () {
+            this.boardElement = document.createElement("div");
+            this.boardElement.className = "board";
+            this.parentElement.appendChild(this.boardElement);
         };
-        Task.prototype.renderTitle = function () {
-            var _this = this;
-            this.checkboxElement = document.createElement("input");
-            this.checkboxElement.type = "checkbox";
-            this.checkboxElement.checked = this.task.status === "completed";
-            this.checkboxElement.addEventListener("change", function () {
-                _this.taskElement.className = "task" + (_this.checkboxElement.checked ? " completed" : "");
-                if (_this.checkboxElement.checked) {
-                    _this.task.status = "completed";
-                }
-                else {
-                    _this.task.status = "needsAction";
-                    delete _this.task.completed;
-                }
-                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
-            }, false);
-            this.taskElement.appendChild(this.checkboxElement);
-            this.titleElement = document.createElement("span");
-            this.titleElement.className = "title";
-            this.titleElement.innerText = this.task.title;
-            this.titleElement.contentEditable = "true";
-            this.titleElement.addEventListener("input", function () {
-                // remove html tags
-                _this.titleElement.innerText = _this.titleElement.textContent;
-            });
-            this.titleElement.addEventListener("blur", function () {
-                _this.task.title = _this.titleElement.innerText;
-                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
-            }, false);
-            this.taskElement.appendChild(this.titleElement);
-        };
-        return Task;
-    })();
-    ViewModels.Task = Task;
-})(ViewModels || (ViewModels = {}));
-var ViewModels;
-(function (ViewModels) {
-    var Column = (function () {
-        function Column(tasksService, taskList, hasAddButton, completeTasks, board, cards) {
-            if (hasAddButton === void 0) { hasAddButton = false; }
-            if (completeTasks === void 0) { completeTasks = false; }
-            if (cards === void 0) { cards = []; }
-            this.tasksService = tasksService;
-            this.taskList = taskList;
-            this.hasAddButton = hasAddButton;
-            this.completeTasks = completeTasks;
-            this.board = board;
-            this.cards = cards;
-        }
-        Column.prototype.render = function (board) {
-            if (board === void 0) { board = this.board; }
-            this.board = board;
-            this.renderColumn();
-            this.renderName();
-            if (this.hasAddButton)
-                this.renderNewCard();
-            this.renderCards();
-        };
-        Column.prototype.renderColumn = function () {
-            var _this = this;
-            this.columnElement = document.createElement("div");
-            this.columnElement.className = "column";
-            if (this.completeTasks) {
-                this.columnElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
-                this.columnElement.addEventListener("drop", function (ev) {
-                    ev.preventDefault();
-                    var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
-                    var targetElement = ev.currentTarget;
-                    targetElement.insertBefore(cardElement, targetElement.childNodes[1]);
-                    var oldTaskListId = cardElement.getAttribute("tasklistid");
-                    var oldColumn = app.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];
-                    var oldTaskId = cardElement.getAttribute("taskid");
-                    var oldCardPos = 0;
-                    oldColumn.cards.forEach(function (c, i) {
-                        if (c.task.id === oldTaskId) {
-                            oldCardPos = i;
-                        }
-                    });
-                    var card = oldColumn.cards.splice(oldCardPos, 1)[0];
-                    card.task.status = "completed";
-                    new Services.Tasks().update(card.task, oldTaskListId, oldTaskId, function () {
-                        _this.cards.unshift(card);
-                    });
-                });
-            }
-            this.board.boardElement.appendChild(this.columnElement);
-        };
-        Column.prototype.renderName = function () {
-            this.nameElement = document.createElement("div");
-            this.nameElement.className = "name";
-            this.nameElement.innerText = this.taskList.title;
-            this.columnElement.appendChild(this.nameElement);
-        };
-        Column.prototype.renderNewCard = function () {
-            var _this = this;
-            this.newCardElement = document.createElement("button");
-            this.newCardElement.className = "new";
-            this.newCardElement.innerText = "+";
-            this.newCardElement.addEventListener("click", function () {
-                new Services.Tasks().new(_this.taskList.id, "", function (task) {
-                    var taskViewModel = new ViewModels.Card(_this.tasksService, _this.taskList, task, _this, []);
-                    _this.cards.push(taskViewModel);
-                    taskViewModel.render();
-                    _this.columnElement.insertBefore(_this.columnElement.lastChild, _this.columnElement.children[2]);
-                });
-            });
-            this.columnElement.appendChild(this.newCardElement);
-        };
-        Column.prototype.renderCards = function () {
-            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
+        Board.prototype.renderColumns = function () {
+            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
                 var c = _a[_i];
                 c.render(this);
             }
         };
-        return Column;
+        return Board;
     })();
-    ViewModels.Column = Column;
+    ViewModels.Board = Board;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
@@ -579,6 +460,7 @@ var ViewModels;
             this.column.columnElement.appendChild(this.cardElement);
         };
         Card.prototype.renderDue = function () {
+            var _this = this;
             this.dueElement = document.createElement("input");
             this.dueElement.type = "date";
             this.dueElement.className = "due";
@@ -586,6 +468,17 @@ var ViewModels;
                 var dueDate = new Date(this.task.due);
                 this.dueElement.valueAsDate = dueDate;
             }
+            this.dueElement.setAttribute("value", this.dueElement.value);
+            this.dueElement.addEventListener("blur", function () {
+                _this.dueElement.setAttribute("value", _this.dueElement.value);
+                if (_this.dueElement.value) {
+                    _this.task.due = _this.dueElement.valueAsDate.toISOString();
+                }
+                else {
+                    _this.task.due = "";
+                }
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            });
             this.cardElement.appendChild(this.dueElement);
         };
         Card.prototype.renderTitle = function () {
@@ -593,6 +486,7 @@ var ViewModels;
             this.titleElement = document.createElement("div");
             this.titleElement.className = "title";
             this.titleElement.innerText = this.task.title;
+            this.titleElement.title = "Title";
             this.titleElement.contentEditable = "true";
             this.titleElement.addEventListener("input", function () {
                 // remove html tags
@@ -611,6 +505,7 @@ var ViewModels;
             if (this.task.notes) {
                 this.descriptionElement.innerText = this.task.notes;
             }
+            this.descriptionElement.title = "Description";
             this.descriptionElement.contentEditable = "true";
             this.descriptionElement.addEventListener("input", function () {
                 // remove html tags
@@ -651,31 +546,141 @@ var ViewModels;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Board = (function () {
-        function Board(columns, parentElement) {
-            if (columns === void 0) { columns = []; }
-            this.columns = columns;
-            this.parentElement = parentElement;
+    var Column = (function () {
+        function Column(tasksService, taskList, hasAddButton, completeTasks, board, cards) {
+            if (hasAddButton === void 0) { hasAddButton = false; }
+            if (completeTasks === void 0) { completeTasks = false; }
+            if (cards === void 0) { cards = []; }
+            this.tasksService = tasksService;
+            this.taskList = taskList;
+            this.hasAddButton = hasAddButton;
+            this.completeTasks = completeTasks;
+            this.board = board;
+            this.cards = cards;
         }
-        Board.prototype.render = function (parentElement) {
-            if (parentElement === void 0) { parentElement = this.parentElement; }
-            this.parentElement = parentElement;
-            this.renderBoard();
-            this.renderColumns();
+        Column.prototype.render = function (board) {
+            if (board === void 0) { board = this.board; }
+            this.board = board;
+            this.renderColumn();
+            this.renderName();
+            if (this.hasAddButton)
+                this.renderNewCard();
+            this.renderCards();
         };
-        Board.prototype.renderBoard = function () {
-            this.boardElement = document.createElement("div");
-            this.boardElement.className = "board";
-            this.parentElement.appendChild(this.boardElement);
+        Column.prototype.renderColumn = function () {
+            var _this = this;
+            this.columnElement = document.createElement("div");
+            this.columnElement.className = "column";
+            if (this.completeTasks) {
+                this.columnElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
+                this.columnElement.addEventListener("drop", function (ev) {
+                    ev.preventDefault();
+                    var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
+                    var targetElement = ev.currentTarget;
+                    targetElement.insertBefore(cardElement, targetElement.childNodes[1]);
+                    var oldTaskListId = cardElement.getAttribute("tasklistid");
+                    var oldColumn = app.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];
+                    var oldTaskId = cardElement.getAttribute("taskid");
+                    var oldCardPos = 0;
+                    oldColumn.cards.forEach(function (c, i) {
+                        if (c.task.id === oldTaskId) {
+                            oldCardPos = i;
+                        }
+                    });
+                    var card = oldColumn.cards.splice(oldCardPos, 1)[0];
+                    card.task.status = "completed";
+                    new Services.Tasks().update(card.task, oldTaskListId, oldTaskId, function () {
+                        _this.cards.unshift(card);
+                    });
+                });
+            }
+            this.board.boardElement.appendChild(this.columnElement);
         };
-        Board.prototype.renderColumns = function () {
-            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
+        Column.prototype.renderName = function () {
+            this.nameElement = document.createElement("div");
+            this.nameElement.className = "name";
+            this.nameElement.innerText = this.taskList.title;
+            this.columnElement.appendChild(this.nameElement);
+        };
+        Column.prototype.renderNewCard = function () {
+            var _this = this;
+            this.newCardElement = document.createElement("button");
+            this.newCardElement.className = "new";
+            this.newCardElement.innerText = "+";
+            this.newCardElement.addEventListener("click", function () {
+                new Services.Tasks().new(_this.taskList.id, "", function (task) {
+                    var taskViewModel = new ViewModels.Card(_this.tasksService, _this.taskList, task, _this, []);
+                    _this.cards.push(taskViewModel);
+                    taskViewModel.render();
+                    _this.columnElement.insertBefore(_this.columnElement.lastChild, _this.columnElement.children[2]);
+                });
+            });
+            this.columnElement.appendChild(this.newCardElement);
+        };
+        Column.prototype.renderCards = function () {
+            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
                 var c = _a[_i];
                 c.render(this);
             }
         };
-        return Board;
+        return Column;
     })();
-    ViewModels.Board = Board;
+    ViewModels.Column = Column;
+})(ViewModels || (ViewModels = {}));
+var ViewModels;
+(function (ViewModels) {
+    var Task = (function () {
+        function Task(tasksService, taskList, task, card) {
+            this.tasksService = tasksService;
+            this.taskList = taskList;
+            this.task = task;
+            this.card = card;
+        }
+        Task.prototype.render = function (card) {
+            if (card === void 0) { card = this.card; }
+            this.card = card;
+            this.renderTask();
+            this.renderTitle();
+        };
+        Task.prototype.renderTask = function () {
+            this.taskElement = document.createElement("div");
+            this.taskElement.className = "task " + this.task.status;
+            this.card.tasksElement.appendChild(this.taskElement);
+        };
+        Task.prototype.renderTitle = function () {
+            var _this = this;
+            this.checkboxElement = document.createElement("input");
+            this.checkboxElement.type = "checkbox";
+            this.checkboxElement.checked = this.task.status === "completed";
+            this.checkboxElement.addEventListener("change", function () {
+                _this.taskElement.className = "task" + (_this.checkboxElement.checked ? " completed" : "");
+                if (_this.checkboxElement.checked) {
+                    _this.task.status = "completed";
+                }
+                else {
+                    _this.task.status = "needsAction";
+                    delete _this.task.completed;
+                }
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            }, false);
+            this.taskElement.appendChild(this.checkboxElement);
+            this.titleElement = document.createElement("span");
+            this.titleElement.className = "title";
+            this.titleElement.innerText = this.task.title;
+            this.titleElement.title = "Task";
+            this.titleElement.contentEditable = "true";
+            this.titleElement.addEventListener("input", function () {
+                // remove html tags
+                _this.titleElement.innerText = _this.titleElement.textContent;
+            });
+            this.titleElement.addEventListener("blur", function () {
+                _this.task.title = _this.titleElement.innerText;
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            }, false);
+            this.taskElement.appendChild(this.titleElement);
+        };
+        return Task;
+    })();
+    ViewModels.Task = Task;
 })(ViewModels || (ViewModels = {}));
 //# sourceMappingURL=MyTasksBoard.js.map

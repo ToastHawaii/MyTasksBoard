@@ -26,7 +26,7 @@ function init() {
                 document.aDragSource.style.left = 0 + "px";
                 document.aDragSource.style.top = 0 + "px";
             }
-        }, true);
+        }, false);
         d.addEventListener("dragend", function (ev) {
             var source = ev.target;
             document.aDragSource = closet(source, "a-draggable");
@@ -42,9 +42,13 @@ function init() {
                 document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
                 document.aDragSource.style.top = ev.changedTouches[0].clientY - startY + "px";
             }
-        }, true);
+        }, false);
         d.addEventListener("touchend", function (ev) {
             ev.preventDefault();
+            ev.target.focus();
+            if (ev.target.nodeName.toUpperCase() === "BUTTON") {
+                ev.target.click();
+            }
             var source = ev.target;
             document.aDragSource = closet(source, "a-draggable");
             if (document.aDragSource) {
@@ -67,7 +71,7 @@ function init() {
                     document.aDragTarget.dispatchEvent(aDropEvent);
                 }
             }
-        }, true);
+        }, false);
     }
     var dropzones = document.getElementsByClassName("a-dropzone");
     for (var i = 0; i < dropzones.length; i++) {

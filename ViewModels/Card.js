@@ -90,6 +90,7 @@ var ViewModels;
             this.column.columnElement.appendChild(this.cardElement);
         };
         Card.prototype.renderDue = function () {
+            var _this = this;
             this.dueElement = document.createElement("input");
             this.dueElement.type = "date";
             this.dueElement.className = "due";
@@ -97,6 +98,17 @@ var ViewModels;
                 var dueDate = new Date(this.task.due);
                 this.dueElement.valueAsDate = dueDate;
             }
+            this.dueElement.setAttribute("value", this.dueElement.value);
+            this.dueElement.addEventListener("blur", function () {
+                _this.dueElement.setAttribute("value", _this.dueElement.value);
+                if (_this.dueElement.value) {
+                    _this.task.due = _this.dueElement.valueAsDate.toISOString();
+                }
+                else {
+                    _this.task.due = "";
+                }
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            });
             this.cardElement.appendChild(this.dueElement);
         };
         Card.prototype.renderTitle = function () {

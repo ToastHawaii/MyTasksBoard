@@ -122,6 +122,18 @@
                 var dueDate = new Date(this.task.due);
                 this.dueElement.valueAsDate = dueDate;
             }
+            this.dueElement.setAttribute("value", this.dueElement.value);
+            this.dueElement.addEventListener("blur", () => {
+                this.dueElement.setAttribute("value", this.dueElement.value);
+
+                if (this.dueElement.value) {
+                    this.task.due = this.dueElement.valueAsDate.toISOString();
+                } else {
+                    this.task.due = "";
+                }
+
+                this.tasksService.update(this.task, this.taskList.id, this.task.id);
+            });
             this.cardElement.appendChild(this.dueElement);
         }
 
@@ -129,6 +141,7 @@
             this.titleElement = document.createElement("div");
             this.titleElement.className = "title";
             this.titleElement.innerText = this.task.title;
+            this.titleElement.title = "Title";
             this.titleElement.contentEditable = "true";
             this.titleElement.addEventListener("input", () => {
                 // remove html tags
@@ -147,6 +160,7 @@
             if (this.task.notes) {
                 this.descriptionElement.innerText = this.task.notes;
             }
+            this.descriptionElement.title = "Description";
             this.descriptionElement.contentEditable = "true";
             this.descriptionElement.addEventListener("input", () => {
                 // remove html tags

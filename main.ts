@@ -37,7 +37,7 @@ function init() {
                 document.aDragSource.style.left = 0 + "px";
                 document.aDragSource.style.top = 0 + "px";
             }
-        }, true);
+        }, false);
 
         d.addEventListener("dragend", ev => {
             let source = (<HTMLElement>ev.target);
@@ -58,9 +58,15 @@ function init() {
                 document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
                 document.aDragSource.style.top = ev.changedTouches[0].clientY - startY + "px";
             }
-        }, true);
+        }, false);
         d.addEventListener("touchend", ev => {
             ev.preventDefault();
+            (<HTMLElement>ev.target).focus();
+
+            if ((<HTMLElement>ev.target).nodeName.toUpperCase() === "BUTTON") {
+                (<HTMLElement>ev.target).click();
+            }
+
             let source = (<HTMLElement>ev.target);
 
             document.aDragSource = closet(source, "a-draggable")
@@ -90,7 +96,7 @@ function init() {
                     document.aDragTarget.dispatchEvent(aDropEvent);
                 }
             }
-        }, true);
+        }, false);
     }
 
     let dropzones = document.getElementsByClassName("a-dropzone");

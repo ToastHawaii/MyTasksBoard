@@ -31,11 +31,10 @@
             this.columnElement.className = "column";
 
             if (this.completeTasks) {
-                this.columnElement.addEventListener("dragover", ev => { ev.preventDefault(); }, false);
-                this.columnElement.addEventListener("drop", ev => {
-                    ev.preventDefault();
-                    let cardElement = document.getElementById(ev.dataTransfer.getData("text"));
-                    let targetElement = <HTMLDivElement>ev.currentTarget;
+                this.columnElement.classList.add("a-dropzone");
+                this.columnElement.addEventListener("a-drop", ev => {
+                    let cardElement = ev.dragSource;
+                    let targetElement = ev.dragTarget;
                     targetElement.insertBefore(cardElement, targetElement.childNodes[1]);
 
                     let oldTaskListId = cardElement.getAttribute("tasklistid");

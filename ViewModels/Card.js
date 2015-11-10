@@ -116,6 +116,7 @@ var ViewModels;
             this.titleElement = document.createElement("div");
             this.titleElement.className = "title";
             this.titleElement.innerText = this.task.title;
+            this.titleElement.title = "Title";
             this.titleElement.contentEditable = "true";
             this.titleElement.addEventListener("input", function () {
                 _this.titleElement.innerText = _this.titleElement.textContent;
@@ -133,6 +134,7 @@ var ViewModels;
             if (this.task.notes) {
                 this.descriptionElement.innerText = this.task.notes;
             }
+            this.descriptionElement.title = "Description";
             this.descriptionElement.contentEditable = "true";
             this.descriptionElement.addEventListener("input", function () {
                 _this.descriptionElement.innerHTML = _this.descriptionElement.innerHTML.replace(/<br\s*\/?>/mg, "\n");

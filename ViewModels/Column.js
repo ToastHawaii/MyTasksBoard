@@ -26,11 +26,10 @@ var ViewModels;
             this.columnElement = document.createElement("div");
             this.columnElement.className = "column";
             if (this.completeTasks) {
-                this.columnElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
-                this.columnElement.addEventListener("drop", function (ev) {
-                    ev.preventDefault();
-                    var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
-                    var targetElement = ev.currentTarget;
+                this.columnElement.classList.add("a-dropzone");
+                this.columnElement.addEventListener("a-drop", function (ev) {
+                    var cardElement = ev.dragSource;
+                    var targetElement = ev.dragTarget;
                     targetElement.insertBefore(cardElement, targetElement.childNodes[1]);
                     var oldTaskListId = cardElement.getAttribute("tasklistid");
                     var oldColumn = app.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];

@@ -249,6 +249,7 @@ html, body {
         cursor: text;
         margin: 6px 0 6px 18px;
     }
+
         .task > .title:empty:hover:after,
         .task > .title:empty:active:after,
         .task > .title:empty:focus:after {
@@ -266,6 +267,6 @@ html, body {
         text-decoration: line-through;
     }
 
-.a-drag {
+.element-drag {
     opacity: 0.4;
 }

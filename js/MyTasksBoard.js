@@ -75,23 +75,23 @@ window.onload = function () {
     app.start();
 };
 function init() {
-    var draggables = document.getElementsByClassName("a-draggable");
+    var draggables = document.getElementsByClassName("element-draggable");
     for (var i = 0; i < draggables.length; i++) {
         var d = draggables[i];
         d.setAttribute("draggable", "true");
         d.addEventListener("dragstart", function (ev) {
             var source = ev.target;
             document.aDragSource = source;
-            document.aDragSource.classList.add("a-drag");
+            document.aDragSource.classList.add("element-drag");
         }, false);
         var startX = 0;
         var startY = 0;
         d.addEventListener("touchstart", function (ev) {
             ev.preventDefault();
             var source = ev.target;
-            document.aDragSource = closet(source, "a-draggable");
+            document.aDragSource = closet(source, "element-draggable");
             if (document.aDragSource) {
-                document.aDragSource.classList.add("a-drag");
+                document.aDragSource.classList.add("element-drag");
                 document.aDragSource.style.position = "relative";
                 startX = ev.changedTouches[0].clientX;
                 startY = ev.changedTouches[0].clientY;
@@ -101,15 +101,15 @@ function init() {
         }, false);
         d.addEventListener("dragend", function (ev) {
             var source = ev.target;
-            document.aDragSource = closet(source, "a-draggable");
+            document.aDragSource = closet(source, "element-draggable");
             if (document.aDragSource) {
-                document.aDragSource.classList.remove("a-drag");
+                document.aDragSource.classList.remove("element-drag");
             }
         }, false);
         d.addEventListener("touchmove", function (ev) {
             ev.preventDefault();
             var source = ev.target;
-            document.aDragSource = closet(source, "a-draggable");
+            document.aDragSource = closet(source, "element-draggable");
             if (document.aDragSource) {
                 document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
                 document.aDragSource.style.top = ev.changedTouches[0].clientY - startY + "px";
@@ -122,14 +122,14 @@ function init() {
                 ev.target.click();
             }
             var source = ev.target;
-            document.aDragSource = closet(source, "a-draggable");
+            document.aDragSource = closet(source, "element-draggable");
             if (document.aDragSource) {
-                document.aDragSource.classList.remove("a-drag");
+                document.aDragSource.classList.remove("element-drag");
                 document.aDragSource.style.position = "";
                 document.aDragTarget = document.elementFromPoint(ev.changedTouches[0].clientX, ev.changedTouches[0].clientY);
-                document.aDragTarget = closet(document.aDragTarget, "a-dropzone");
+                document.aDragTarget = closet(document.aDragTarget, "element-dropzone");
                 if (document.aDragTarget) {
-                    var aDropEvent = new Event("a-drop");
+                    var aDropEvent = new Event("element-drop");
                     aDropEvent.dragTarget = document.aDragTarget;
                     aDropEvent.dragSource = document.aDragSource;
                     if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.changedTouches[0].clientY) {
@@ -145,7 +145,7 @@ function init() {
             }
         }, false);
     }
-    var dropzones = document.getElementsByClassName("a-dropzone");
+    var dropzones = document.getElementsByClassName("element-dropzone");
     for (var i = 0; i < dropzones.length; i++) {
         var d = dropzones[i];
         d.addEventListener("dragover", function (ev) {
@@ -153,8 +153,8 @@ function init() {
         }, false);
         d.addEventListener("drop", function (ev) {
             document.aDragTarget = ev.currentTarget;
-            document.aDragTarget = closet(document.aDragTarget, "a-dropzone");
-            var aDropEvent = new Event("a-drop");
+            document.aDragTarget = closet(document.aDragTarget, "element-dropzone");
+            var aDropEvent = new Event("element-drop");
             aDropEvent.dragTarget = document.aDragTarget;
             aDropEvent.dragSource = document.aDragSource;
             if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.clientY) {
@@ -392,11 +392,11 @@ var ViewModels;
             var _this = this;
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.task.id;
-            this.cardElement.className = "card a-draggable a-dropzone";
+            this.cardElement.className = "card element-draggable element-dropzone";
             this.cardElement.draggable = true;
             this.cardElement.setAttribute("tasklistid", this.taskList.id);
             this.cardElement.setAttribute("taskid", this.task.id);
-            this.cardElement.addEventListener("a-drop", function (ev) {
+            this.cardElement.addEventListener("element-drop", function (ev) {
                 var cardElement = ev.dragSource;
                 var targetElement = ev.dragTarget;
                 if (ev.dragTop) {

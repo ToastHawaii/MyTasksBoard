@@ -11,7 +11,7 @@ interface Document {
 }
 
 function init() {
-    let draggables = document.getElementsByClassName("a-draggable");
+    let draggables = document.getElementsByClassName("element-draggable");
     for (let i = 0; i < draggables.length; i++) {
         var d = draggables[i];
         d.setAttribute("draggable", "true");
@@ -19,7 +19,7 @@ function init() {
             let source = <HTMLElement>ev.target;
 
             document.aDragSource = source;
-            document.aDragSource.classList.add("a-drag");
+            document.aDragSource.classList.add("element-drag");
         }, false);
         var startX = 0;
         var startY = 0;
@@ -27,10 +27,10 @@ function init() {
             ev.preventDefault();
             let source = <HTMLElement>ev.target;
 
-            document.aDragSource = closet(source, "a-draggable")
+            document.aDragSource = closet(source, "element-draggable")
 
             if (document.aDragSource) {
-                document.aDragSource.classList.add("a-drag");
+                document.aDragSource.classList.add("element-drag");
                 document.aDragSource.style.position = "relative";
                 startX = ev.changedTouches[0].clientX;
                 startY = ev.changedTouches[0].clientY;
@@ -42,17 +42,17 @@ function init() {
         d.addEventListener("dragend", ev => {
             let source = (<HTMLElement>ev.target);
 
-            document.aDragSource = closet(source, "a-draggable")
+            document.aDragSource = closet(source, "element-draggable")
 
             if (document.aDragSource) {
-                document.aDragSource.classList.remove("a-drag");
+                document.aDragSource.classList.remove("element-drag");
             }
         }, false);
         d.addEventListener("touchmove", ev => {
             ev.preventDefault();
             let source = (<HTMLElement>ev.target);
 
-            document.aDragSource = closet(source, "a-draggable")
+            document.aDragSource = closet(source, "element-draggable")
 
             if (document.aDragSource) {
                 document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
@@ -69,18 +69,18 @@ function init() {
 
             let source = (<HTMLElement>ev.target);
 
-            document.aDragSource = closet(source, "a-draggable")
+            document.aDragSource = closet(source, "element-draggable")
 
             if (document.aDragSource) {
-                document.aDragSource.classList.remove("a-drag");
+                document.aDragSource.classList.remove("element-drag");
                 document.aDragSource.style.position = "";
 
                 document.aDragTarget = <HTMLElement>document.elementFromPoint(ev.changedTouches[0].clientX, ev.changedTouches[0].clientY);
 
-                document.aDragTarget = closet(document.aDragTarget, "a-dropzone")
+                document.aDragTarget = closet(document.aDragTarget, "element-dropzone")
 
                 if (document.aDragTarget) {
-                    var aDropEvent = new Event("a-drop");
+                    var aDropEvent = new Event("element-drop");
 
                     aDropEvent.dragTarget = document.aDragTarget;
                     aDropEvent.dragSource = document.aDragSource;
@@ -99,7 +99,7 @@ function init() {
         }, false);
     }
 
-    let dropzones = document.getElementsByClassName("a-dropzone");
+    let dropzones = document.getElementsByClassName("element-dropzone");
     for (let i = 0; i < dropzones.length; i++) {
         var d = dropzones[i];
         d.addEventListener("dragover", ev => {
@@ -108,9 +108,9 @@ function init() {
         d.addEventListener("drop", ev => {
             document.aDragTarget = <HTMLDivElement>ev.currentTarget;
 
-            document.aDragTarget = closet(document.aDragTarget, "a-dropzone")
+            document.aDragTarget = closet(document.aDragTarget, "element-dropzone")
 
-            var aDropEvent = new Event("a-drop");
+            var aDropEvent = new Event("element-drop");
 
             aDropEvent.dragTarget = document.aDragTarget;
             aDropEvent.dragSource = document.aDragSource;

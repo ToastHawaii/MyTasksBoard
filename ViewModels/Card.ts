@@ -32,12 +32,12 @@
         private renderCard() {
             this.cardElement = document.createElement("div");
             this.cardElement.id = "card-" + this.task.id;
-            this.cardElement.className = "card a-draggable a-dropzone";
+            this.cardElement.className = "card element-draggable element-dropzone";
             this.cardElement.draggable = true;
             this.cardElement.setAttribute("tasklistid", this.taskList.id);
             this.cardElement.setAttribute("taskid", this.task.id);
 
-            this.cardElement.addEventListener("a-drop", ev=> {
+            this.cardElement.addEventListener("element-drop", ev=> {
                 let cardElement = ev.dragSource;
                 let targetElement = ev.dragTarget;
 

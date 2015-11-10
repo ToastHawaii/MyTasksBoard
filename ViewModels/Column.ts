@@ -31,8 +31,8 @@
             this.columnElement.className = "column";
 
             if (this.completeTasks) {
-                this.columnElement.classList.add("a-dropzone");
-                this.columnElement.addEventListener("a-drop", ev => {
+                this.columnElement.classList.add("element-dropzone");
+                this.columnElement.addEventListener("element-drop", ev => {
                     let cardElement = ev.dragSource;
                     let targetElement = ev.dragTarget;
                     targetElement.insertBefore(cardElement, targetElement.childNodes[1]);

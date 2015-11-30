@@ -23,28 +23,45 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="app.css" />
+    <None Include="compilerconfig.json" />
+    <Content Include="compilerconfig.json.defaults">
+      <DependentUpon>compilerconfig.json</DependentUpon>
+    </Content>
+    <Content Include="scripts.js" />
+    <Content Include="styles.css">
+      <DependentUpon>styles.less</DependentUpon>
+    </Content>
+    <Content Include="styles.min.css">
+      <DependentUpon>styles.css</DependentUpon>
+    </Content>
+    <Content Include="Styles\Components\board.less" />
+    <Content Include="scripts.js.map" />
+    <None Include="Styles\Components\app.less" />
     <Content Include="index.html" />
-    <Content Include="js\MyTasksBoard.js" />
-    <Content Include="lib\normalize.css" />
+    <Content Include="Styles\libs\normalize.css" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="App.ts" />
-    <TypeScriptCompile Include="main.ts" />
-    <TypeScriptCompile Include="Services\Auth.ts" />
-    <TypeScriptCompile Include="Services\Tasks.ts" />
+    <TypeScriptCompile Include="Scripts\App.ts" />
+    <TypeScriptCompile Include="Scripts\Draggable.ts" />
+    <TypeScriptCompile Include="Scripts\main.ts" />
+    <TypeScriptCompile Include="Scripts\Services\Auth.ts" />
+    <TypeScriptCompile Include="Scripts\Services\Tasks.ts" />
     <TypeScriptCompile Include="Scripts\typings\gapi.tasks\gapi.tasks.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\gapi\gapi.d.ts" />
-    <TypeScriptCompile Include="ViewModels\Task.ts" />
-    <TypeScriptCompile Include="ViewModels\Column.ts" />
-    <TypeScriptCompile Include="ViewModels\Card.ts" />
-    <TypeScriptCompile Include="ViewModels\Board.ts" />
+    <TypeScriptCompile Include="Scripts\ViewModels\Task.ts" />
+    <TypeScriptCompile Include="Scripts\ViewModels\Column.ts" />
+    <TypeScriptCompile Include="Scripts\ViewModels\Card.ts" />
+    <TypeScriptCompile Include="Scripts\ViewModels\Board.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="js\MyTasksBoard.js.map" />
     <Content Include="packages.config" />
     <Content Include="README.md" />
+    <Content Include="styles.less" />
+    <Content Include="Styles\scaffolding.less" />
+    <Content Include="Styles\Components\column.less" />
+    <Content Include="Styles\Components\card.less" />
+    <Content Include="Styles\Components\task.less" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -60,6 +77,7 @@
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
   </PropertyGroup>
@@ -94,7 +112,7 @@
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
     <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
     <TypeScriptModuleKind>None</TypeScriptModuleKind>
-    <TypeScriptOutFile>js/MyTasksBoard.js</TypeScriptOutFile>
+    <TypeScriptOutFile>scripts.js</TypeScriptOutFile>
     <TypeScriptOutDir />
     <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>

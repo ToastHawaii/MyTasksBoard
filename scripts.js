@@ -70,113 +70,120 @@ var App = (function () {
     };
     return App;
 })();
-window.onload = function () {
+var Draggale;
+(function (Draggale) {
+    "use strict";
+    var closet = function (element, className) {
+        if (element.classList.contains(className))
+            return element;
+        while ((element = element.parentElement) && !element.classList.contains(className))
+            ;
+        return element;
+    };
+    function init(parent) {
+        if (parent === void 0) { parent = document.documentElement; }
+        var draggables = parent.getElementsByClassName("element-draggable");
+        for (var i = 0; i < draggables.length; i++) {
+            var d = draggables[i];
+            d.setAttribute("draggable", "true");
+            d.addEventListener("dragstart", function (ev) {
+                var source = ev.target;
+                document.aDragSource = source;
+                document.aDragSource.classList.add("element-drag");
+            }, false);
+            var startX = 0;
+            var startY = 0;
+            d.addEventListener("touchstart", function (ev) {
+                ev.preventDefault();
+                var source = ev.target;
+                document.aDragSource = closet(source, "element-draggable");
+                if (document.aDragSource) {
+                    document.aDragSource.classList.add("element-drag");
+                    document.aDragSource.style.position = "relative";
+                    startX = ev.changedTouches[0].clientX;
+                    startY = ev.changedTouches[0].clientY;
+                    document.aDragSource.style.left = 0 + "px";
+                    document.aDragSource.style.top = 0 + "px";
+                }
+            }, false);
+            d.addEventListener("dragend", function (ev) {
+                var source = ev.target;
+                document.aDragSource = closet(source, "element-draggable");
+                if (document.aDragSource) {
+                    document.aDragSource.classList.remove("element-drag");
+                }
+            }, false);
+            d.addEventListener("touchmove", function (ev) {
+                ev.preventDefault();
+                var source = ev.target;
+                document.aDragSource = closet(source, "element-draggable");
+                if (document.aDragSource) {
+                    document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
+                    document.aDragSource.style.top = ev.changedTouches[0].clientY - startY + "px";
+                }
+            }, false);
+            d.addEventListener("touchend", function (ev) {
+                ev.preventDefault();
+                ev.target.focus();
+                if (ev.target.nodeName.toUpperCase() === "BUTTON") {
+                    ev.target.click();
+                }
+                var source = ev.target;
+                document.aDragSource = closet(source, "element-draggable");
+                if (document.aDragSource) {
+                    document.aDragSource.classList.remove("element-drag");
+                    document.aDragSource.style.position = "";
+                    document.aDragTarget = document.elementFromPoint(ev.changedTouches[0].clientX, ev.changedTouches[0].clientY);
+                    document.aDragTarget = closet(document.aDragTarget, "element-dropzone");
+                    if (document.aDragTarget) {
+                        var aDropEvent = new Event("element-drop");
+                        aDropEvent.dragTarget = document.aDragTarget;
+                        aDropEvent.dragSource = document.aDragSource;
+                        if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.changedTouches[0].clientY) {
+                            aDropEvent.dragTop = true;
+                            aDropEvent.dragBottom = false;
+                        }
+                        else {
+                            aDropEvent.dragTop = false;
+                            aDropEvent.dragBottom = true;
+                        }
+                        document.aDragTarget.dispatchEvent(aDropEvent);
+                    }
+                }
+            }, false);
+        }
+        var dropzones = parent.getElementsByClassName("element-dropzone");
+        for (var i = 0; i < dropzones.length; i++) {
+            var d = dropzones[i];
+            d.addEventListener("dragover", function (ev) {
+                ev.preventDefault();
+            }, false);
+            d.addEventListener("drop", function (ev) {
+                document.aDragTarget = ev.currentTarget;
+                document.aDragTarget = closet(document.aDragTarget, "element-dropzone");
+                var aDropEvent = new Event("element-drop");
+                aDropEvent.dragTarget = document.aDragTarget;
+                aDropEvent.dragSource = document.aDragSource;
+                if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.clientY) {
+                    aDropEvent.dragTop = true;
+                    aDropEvent.dragBottom = false;
+                }
+                else {
+                    aDropEvent.dragTop = false;
+                    aDropEvent.dragBottom = true;
+                }
+                document.aDragTarget.dispatchEvent(aDropEvent);
+            }, false);
+        }
+    }
+    Draggale.init = init;
+})(Draggale || (Draggale = {}));
+window.addEventListener("load", function () {
+    "use strict";
     app = new App();
     app.start();
-};
-function init() {
-    var draggables = document.getElementsByClassName("element-draggable");
-    for (var i = 0; i < draggables.length; i++) {
-        var d = draggables[i];
-        d.setAttribute("draggable", "true");
-        d.addEventListener("dragstart", function (ev) {
-            var source = ev.target;
-            document.aDragSource = source;
-            document.aDragSource.classList.add("element-drag");
-        }, false);
-        var startX = 0;
-        var startY = 0;
-        d.addEventListener("touchstart", function (ev) {
-            ev.preventDefault();
-            var source = ev.target;
-            document.aDragSource = closet(source, "element-draggable");
-            if (document.aDragSource) {
-                document.aDragSource.classList.add("element-drag");
-                document.aDragSource.style.position = "relative";
-                startX = ev.changedTouches[0].clientX;
-                startY = ev.changedTouches[0].clientY;
-                document.aDragSource.style.left = 0 + "px";
-                document.aDragSource.style.top = 0 + "px";
-            }
-        }, false);
-        d.addEventListener("dragend", function (ev) {
-            var source = ev.target;
-            document.aDragSource = closet(source, "element-draggable");
-            if (document.aDragSource) {
-                document.aDragSource.classList.remove("element-drag");
-            }
-        }, false);
-        d.addEventListener("touchmove", function (ev) {
-            ev.preventDefault();
-            var source = ev.target;
-            document.aDragSource = closet(source, "element-draggable");
-            if (document.aDragSource) {
-                document.aDragSource.style.left = ev.changedTouches[0].clientX - startX + "px";
-                document.aDragSource.style.top = ev.changedTouches[0].clientY - startY + "px";
-            }
-        }, false);
-        d.addEventListener("touchend", function (ev) {
-            ev.preventDefault();
-            ev.target.focus();
-            if (ev.target.nodeName.toUpperCase() === "BUTTON") {
-                ev.target.click();
-            }
-            var source = ev.target;
-            document.aDragSource = closet(source, "element-draggable");
-            if (document.aDragSource) {
-                document.aDragSource.classList.remove("element-drag");
-                document.aDragSource.style.position = "";
-                document.aDragTarget = document.elementFromPoint(ev.changedTouches[0].clientX, ev.changedTouches[0].clientY);
-                document.aDragTarget = closet(document.aDragTarget, "element-dropzone");
-                if (document.aDragTarget) {
-                    var aDropEvent = new Event("element-drop");
-                    aDropEvent.dragTarget = document.aDragTarget;
-                    aDropEvent.dragSource = document.aDragSource;
-                    if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.changedTouches[0].clientY) {
-                        aDropEvent.dragTop = true;
-                        aDropEvent.dragBottom = false;
-                    }
-                    else {
-                        aDropEvent.dragTop = false;
-                        aDropEvent.dragBottom = true;
-                    }
-                    document.aDragTarget.dispatchEvent(aDropEvent);
-                }
-            }
-        }, false);
-    }
-    var dropzones = document.getElementsByClassName("element-dropzone");
-    for (var i = 0; i < dropzones.length; i++) {
-        var d = dropzones[i];
-        d.addEventListener("dragover", function (ev) {
-            ev.preventDefault();
-        }, false);
-        d.addEventListener("drop", function (ev) {
-            document.aDragTarget = ev.currentTarget;
-            document.aDragTarget = closet(document.aDragTarget, "element-dropzone");
-            var aDropEvent = new Event("element-drop");
-            aDropEvent.dragTarget = document.aDragTarget;
-            aDropEvent.dragSource = document.aDragSource;
-            if (document.aDragTarget.clientTop + document.aDragTarget.clientHeight / 2 > ev.clientY) {
-                aDropEvent.dragTop = true;
-                aDropEvent.dragBottom = false;
-            }
-            else {
-                aDropEvent.dragTop = false;
-                aDropEvent.dragBottom = true;
-            }
-            document.aDragTarget.dispatchEvent(aDropEvent);
-        }, false);
-    }
-}
-function closet(element, className) {
-    if (element.classList.contains(className))
-        return element;
-    while ((element = element.parentElement) && !element.classList.contains(className))
-        ;
-    return element;
-}
-setTimeout(init, 3000);
+});
+setTimeout(Draggale.init, 3000);
 var Services;
 (function (Services) {
     var Auth = (function () {
@@ -341,32 +348,141 @@ var Services;
 })(Services || (Services = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Board = (function () {
-        function Board(columns, parentElement) {
-            if (columns === void 0) { columns = []; }
-            this.columns = columns;
-            this.parentElement = parentElement;
+    var Task = (function () {
+        function Task(tasksService, taskList, task, card) {
+            this.tasksService = tasksService;
+            this.taskList = taskList;
+            this.task = task;
+            this.card = card;
         }
-        Board.prototype.render = function (parentElement) {
-            if (parentElement === void 0) { parentElement = this.parentElement; }
-            this.parentElement = parentElement;
-            this.renderBoard();
-            this.renderColumns();
+        Task.prototype.render = function (card) {
+            if (card === void 0) { card = this.card; }
+            this.card = card;
+            this.renderTask();
+            this.renderTitle();
         };
-        Board.prototype.renderBoard = function () {
-            this.boardElement = document.createElement("div");
-            this.boardElement.className = "board";
-            this.parentElement.appendChild(this.boardElement);
+        Task.prototype.renderTask = function () {
+            this.taskElement = document.createElement("div");
+            this.taskElement.className = "task " + this.task.status;
+            this.card.tasksElement.appendChild(this.taskElement);
         };
-        Board.prototype.renderColumns = function () {
-            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
+        Task.prototype.renderTitle = function () {
+            var _this = this;
+            this.checkboxElement = document.createElement("input");
+            this.checkboxElement.type = "checkbox";
+            this.checkboxElement.checked = this.task.status === "completed";
+            this.checkboxElement.addEventListener("change", function () {
+                _this.taskElement.className = "task" + (_this.checkboxElement.checked ? " completed" : "");
+                if (_this.checkboxElement.checked) {
+                    _this.task.status = "completed";
+                }
+                else {
+                    _this.task.status = "needsAction";
+                    delete _this.task.completed;
+                }
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            }, false);
+            this.taskElement.appendChild(this.checkboxElement);
+            this.titleElement = document.createElement("span");
+            this.titleElement.className = "title";
+            this.titleElement.innerText = this.task.title;
+            this.titleElement.title = "Task";
+            this.titleElement.contentEditable = "true";
+            this.titleElement.addEventListener("input", function () {
+                // remove html tags
+                _this.titleElement.innerText = _this.titleElement.textContent;
+            });
+            this.titleElement.addEventListener("blur", function () {
+                _this.task.title = _this.titleElement.innerText;
+                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
+            }, false);
+            this.taskElement.appendChild(this.titleElement);
+        };
+        return Task;
+    })();
+    ViewModels.Task = Task;
+})(ViewModels || (ViewModels = {}));
+var ViewModels;
+(function (ViewModels) {
+    var Column = (function () {
+        function Column(tasksService, taskList, hasAddButton, completeTasks, board, cards) {
+            if (hasAddButton === void 0) { hasAddButton = false; }
+            if (completeTasks === void 0) { completeTasks = false; }
+            if (cards === void 0) { cards = []; }
+            this.tasksService = tasksService;
+            this.taskList = taskList;
+            this.hasAddButton = hasAddButton;
+            this.completeTasks = completeTasks;
+            this.board = board;
+            this.cards = cards;
+        }
+        Column.prototype.render = function (board) {
+            if (board === void 0) { board = this.board; }
+            this.board = board;
+            this.renderColumn();
+            this.renderName();
+            if (this.hasAddButton)
+                this.renderNewCard();
+            this.renderCards();
+        };
+        Column.prototype.renderColumn = function () {
+            var _this = this;
+            this.columnElement = document.createElement("div");
+            this.columnElement.className = "column";
+            if (this.completeTasks) {
+                this.columnElement.classList.add("element-dropzone");
+                this.columnElement.addEventListener("element-drop", function (ev) {
+                    var cardElement = ev.dragSource;
+                    var targetElement = ev.dragTarget;
+                    targetElement.insertBefore(cardElement, targetElement.childNodes[1]);
+                    var oldTaskListId = cardElement.getAttribute("tasklistid");
+                    var oldColumn = app.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];
+                    var oldTaskId = cardElement.getAttribute("taskid");
+                    var oldCardPos = 0;
+                    oldColumn.cards.forEach(function (c, i) {
+                        if (c.task.id === oldTaskId) {
+                            oldCardPos = i;
+                        }
+                    });
+                    var card = oldColumn.cards.splice(oldCardPos, 1)[0];
+                    card.task.status = "completed";
+                    new Services.Tasks().update(card.task, oldTaskListId, oldTaskId, function () {
+                        _this.cards.unshift(card);
+                    });
+                });
+            }
+            this.board.boardElement.appendChild(this.columnElement);
+        };
+        Column.prototype.renderName = function () {
+            this.nameElement = document.createElement("div");
+            this.nameElement.className = "name";
+            this.nameElement.innerText = this.taskList.title;
+            this.columnElement.appendChild(this.nameElement);
+        };
+        Column.prototype.renderNewCard = function () {
+            var _this = this;
+            this.newCardElement = document.createElement("button");
+            this.newCardElement.className = "new";
+            this.newCardElement.innerText = "+";
+            this.newCardElement.addEventListener("click", function () {
+                new Services.Tasks().new(_this.taskList.id, "", function (task) {
+                    var taskViewModel = new ViewModels.Card(_this.tasksService, _this.taskList, task, _this, []);
+                    _this.cards.push(taskViewModel);
+                    taskViewModel.render();
+                    _this.columnElement.insertBefore(_this.columnElement.lastChild, _this.columnElement.children[2]);
+                });
+            });
+            this.columnElement.appendChild(this.newCardElement);
+        };
+        Column.prototype.renderCards = function () {
+            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
                 var c = _a[_i];
                 c.render(this);
             }
         };
-        return Board;
+        return Column;
     })();
-    ViewModels.Board = Board;
+    ViewModels.Column = Column;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
@@ -546,141 +662,31 @@ var ViewModels;
 })(ViewModels || (ViewModels = {}));
 var ViewModels;
 (function (ViewModels) {
-    var Column = (function () {
-        function Column(tasksService, taskList, hasAddButton, completeTasks, board, cards) {
-            if (hasAddButton === void 0) { hasAddButton = false; }
-            if (completeTasks === void 0) { completeTasks = false; }
-            if (cards === void 0) { cards = []; }
-            this.tasksService = tasksService;
-            this.taskList = taskList;
-            this.hasAddButton = hasAddButton;
-            this.completeTasks = completeTasks;
-            this.board = board;
-            this.cards = cards;
+    var Board = (function () {
+        function Board(columns, parentElement) {
+            if (columns === void 0) { columns = []; }
+            this.columns = columns;
+            this.parentElement = parentElement;
         }
-        Column.prototype.render = function (board) {
-            if (board === void 0) { board = this.board; }
-            this.board = board;
-            this.renderColumn();
-            this.renderName();
-            if (this.hasAddButton)
-                this.renderNewCard();
-            this.renderCards();
+        Board.prototype.render = function (parentElement) {
+            if (parentElement === void 0) { parentElement = this.parentElement; }
+            this.parentElement = parentElement;
+            this.renderBoard();
+            this.renderColumns();
         };
-        Column.prototype.renderColumn = function () {
-            var _this = this;
-            this.columnElement = document.createElement("div");
-            this.columnElement.className = "column";
-            if (this.completeTasks) {
-                this.columnElement.addEventListener("dragover", function (ev) { ev.preventDefault(); }, false);
-                this.columnElement.addEventListener("drop", function (ev) {
-                    ev.preventDefault();
-                    var cardElement = document.getElementById(ev.dataTransfer.getData("text"));
-                    var targetElement = ev.currentTarget;
-                    targetElement.insertBefore(cardElement, targetElement.childNodes[1]);
-                    var oldTaskListId = cardElement.getAttribute("tasklistid");
-                    var oldColumn = app.board.columns.filter(function (c) { return c.taskList.id === oldTaskListId; })[0];
-                    var oldTaskId = cardElement.getAttribute("taskid");
-                    var oldCardPos = 0;
-                    oldColumn.cards.forEach(function (c, i) {
-                        if (c.task.id === oldTaskId) {
-                            oldCardPos = i;
-                        }
-                    });
-                    var card = oldColumn.cards.splice(oldCardPos, 1)[0];
-                    card.task.status = "completed";
-                    new Services.Tasks().update(card.task, oldTaskListId, oldTaskId, function () {
-                        _this.cards.unshift(card);
-                    });
-                });
-            }
-            this.board.boardElement.appendChild(this.columnElement);
+        Board.prototype.renderBoard = function () {
+            this.boardElement = document.createElement("div");
+            this.boardElement.className = "board";
+            this.parentElement.appendChild(this.boardElement);
         };
-        Column.prototype.renderName = function () {
-            this.nameElement = document.createElement("div");
-            this.nameElement.className = "name";
-            this.nameElement.innerText = this.taskList.title;
-            this.columnElement.appendChild(this.nameElement);
-        };
-        Column.prototype.renderNewCard = function () {
-            var _this = this;
-            this.newCardElement = document.createElement("button");
-            this.newCardElement.className = "new";
-            this.newCardElement.innerText = "+";
-            this.newCardElement.addEventListener("click", function () {
-                new Services.Tasks().new(_this.taskList.id, "", function (task) {
-                    var taskViewModel = new ViewModels.Card(_this.tasksService, _this.taskList, task, _this, []);
-                    _this.cards.push(taskViewModel);
-                    taskViewModel.render();
-                    _this.columnElement.insertBefore(_this.columnElement.lastChild, _this.columnElement.children[2]);
-                });
-            });
-            this.columnElement.appendChild(this.newCardElement);
-        };
-        Column.prototype.renderCards = function () {
-            for (var _i = 0, _a = this.cards; _i < _a.length; _i++) {
+        Board.prototype.renderColumns = function () {
+            for (var _i = 0, _a = this.columns; _i < _a.length; _i++) {
                 var c = _a[_i];
                 c.render(this);
             }
         };
-        return Column;
+        return Board;
     })();
-    ViewModels.Column = Column;
+    ViewModels.Board = Board;
 })(ViewModels || (ViewModels = {}));
-var ViewModels;
-(function (ViewModels) {
-    var Task = (function () {
-        function Task(tasksService, taskList, task, card) {
-            this.tasksService = tasksService;
-            this.taskList = taskList;
-            this.task = task;
-            this.card = card;
-        }
-        Task.prototype.render = function (card) {
-            if (card === void 0) { card = this.card; }
-            this.card = card;
-            this.renderTask();
-            this.renderTitle();
-        };
-        Task.prototype.renderTask = function () {
-            this.taskElement = document.createElement("div");
-            this.taskElement.className = "task " + this.task.status;
-            this.card.tasksElement.appendChild(this.taskElement);
-        };
-        Task.prototype.renderTitle = function () {
-            var _this = this;
-            this.checkboxElement = document.createElement("input");
-            this.checkboxElement.type = "checkbox";
-            this.checkboxElement.checked = this.task.status === "completed";
-            this.checkboxElement.addEventListener("change", function () {
-                _this.taskElement.className = "task" + (_this.checkboxElement.checked ? " completed" : "");
-                if (_this.checkboxElement.checked) {
-                    _this.task.status = "completed";
-                }
-                else {
-                    _this.task.status = "needsAction";
-                    delete _this.task.completed;
-                }
-                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
-            }, false);
-            this.taskElement.appendChild(this.checkboxElement);
-            this.titleElement = document.createElement("span");
-            this.titleElement.className = "title";
-            this.titleElement.innerText = this.task.title;
-            this.titleElement.title = "Task";
-            this.titleElement.contentEditable = "true";
-            this.titleElement.addEventListener("input", function () {
-                // remove html tags
-                _this.titleElement.innerText = _this.titleElement.textContent;
-            });
-            this.titleElement.addEventListener("blur", function () {
-                _this.task.title = _this.titleElement.innerText;
-                _this.tasksService.update(_this.task, _this.taskList.id, _this.task.id);
-            }, false);
-            this.taskElement.appendChild(this.titleElement);
-        };
-        return Task;
-    })();
-    ViewModels.Task = Task;
-})(ViewModels || (ViewModels = {}));
-//# sourceMappingURL=MyTasksBoard.js.map
+//# sourceMappingURL=scripts.js.map

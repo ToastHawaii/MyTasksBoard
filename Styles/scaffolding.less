@@ -1,0 +1,28 @@
+﻿/* Prevent the text contents of draggable elements from being selectable. */
+[draggable] {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+input,
+textarea,
+[contenteditable] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+.element-drag {
+    opacity: 0.4;
+}
+
+html, body {
+    height: 100%;
+}
+
+#authorize {
+    display: none;
+}

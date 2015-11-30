@@ -26,8 +26,8 @@ var ViewModels;
             this.columnElement = document.createElement("div");
             this.columnElement.className = "column";
             if (this.completeTasks) {
-                this.columnElement.classList.add("a-dropzone");
-                this.columnElement.addEventListener("a-drop", function (ev) {
+                this.columnElement.classList.add("element-dropzone");
+                this.columnElement.addEventListener("element-drop", function (ev) {
                     var cardElement = ev.dragSource;
                     var targetElement = ev.dragTarget;
                     targetElement.insertBefore(cardElement, targetElement.childNodes[1]);

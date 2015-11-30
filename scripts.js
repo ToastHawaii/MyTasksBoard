@@ -178,6 +178,7 @@ var Draggale;
     }
     Draggale.init = init;
 })(Draggale || (Draggale = {}));
+var app;
 window.addEventListener("load", function () {
     "use strict";
     app = new App();

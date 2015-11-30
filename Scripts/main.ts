@@ -1,4 +1,4 @@
-﻿declare var app: App;
+﻿var app: App;
 
 window.addEventListener("load", () => {
     "use strict";

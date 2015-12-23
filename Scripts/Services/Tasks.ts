@@ -109,7 +109,15 @@
                                             }
                                         });
                                     };
-                                    moveChild();
+                                    if (0 < oldChildTasks.length)
+                                        moveChild();
+                                    else
+                                    {
+                                        let request = gapi.client.tasks.tasks.delete({ tasklist: fromTaskListId, task: taskId });
+                                        request.execute(empty => {
+                                            if (callback) callback(newTask, newChildTasks);
+                                        });
+                                    }
                                 });
                             }
                         });

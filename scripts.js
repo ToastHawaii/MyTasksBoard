@@ -47,6 +47,7 @@ var App = (function () {
                             }
                             else {
                                 columnCompleted.cards.push(card);
+                                columnCompleted.cards = columnCompleted.cards.sort(function (a, b) { return a.task.completed.localeCompare(b.task.completed); });
                                 card.render(columnCompleted);
                             }
                         }
@@ -326,7 +327,15 @@ var Services;
                                             }
                                         });
                                     };
-                                    moveChild();
+                                    if (0 < oldChildTasks.length)
+                                        moveChild();
+                                    else {
+                                        var request_3 = gapi.client.tasks.tasks.delete({ tasklist: fromTaskListId, task: taskId });
+                                        request_3.execute(function (empty) {
+                                            if (callback)
+                                                callback(newTask, newChildTasks);
+                                        });
+                                    }
                                 });
                             }
                         });
